@@ -1,0 +1,233 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Map-reduce implentation using Lambda, S3 and SQS in Node
+
+Globals:
+  Function:
+    Environment:
+      Variables:
+        S3_BUCKET: !Ref S3MRBucket
+        SQS_MAPPER_URL: !Ref SQSMapperInputQueue
+        SQS_REDUCER_URL: !Ref SQSReducerInputQueue
+        SQS_AGGREGATOR_TRIGGER_URL: !Ref SQSAggregatorTriggerQueue
+        SQS_MAPPER_WATCHER_URL: !Ref SQSMapperWatcherQueue
+        SQS_REDUCER_WATCHER_URL: !Ref SQSReducerWatcherQueue
+        SQS_AGGREGATOR_WATCHER_URL: !Ref SQSAggregatorWatcherQueue
+
+Resources:
+  # SQS queue where messages to process each review will be published
+  SQSMapperInputQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: mr-sqs-mapper
+      VisibilityTimeout: 601
+  # S3 bucket where to store all results (inteermediate + final)
+  S3MRBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: com.zerotoheroes.mr
+  # SQS queue where messages to trigger the reducers will be published
+  SQSReducerInputQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: mr-sqs-reducer
+      VisibilityTimeout: 601
+  # SQS queue where a message to notify the aggregator is posted
+  SQSAggregatorTriggerQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: mr-sqs-aggregator-trigger
+      VisibilityTimeout: 601
+  # SQS queue where messages to trigger the mapper watcher will be published
+  SQSMapperWatcherQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: mr-sqs-mapper-watcher
+      VisibilityTimeout: 601
+  # SQS queue where messages to trigger the mapper reducer will be published
+  SQSReducerWatcherQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: mr-sqs-reducer-watcher
+      VisibilityTimeout: 601
+  SQSAggregatorWatcherQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: mr-sqs-aggregator-watcher
+      VisibilityTimeout: 601
+
+  # Lambda function to initialize the MR (the Driver). No event there, we trigger it manually via the console for now
+  # The driver will be responsible of loading all the review IDs
+  DriverFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: driver.default
+      Runtime: nodejs8.10
+      Timeout: 360
+      Tracing: Active
+      CodeUri: driver/dist/driver
+      MemorySize: 2048
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonSQSFullAccess
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eccd2691
+        SubnetIds:
+          - subnet-65ff583c
+          - subnet-894624ec
+          - subnet-b05fdfc7
+  MapperWatcherFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: mapper-watcher.default
+      Runtime: nodejs8.10
+      Tracing: Active
+      CodeUri: mapper-watcher/dist/mapper-watcher
+      MemorySize: 512
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonSQSFullAccess
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eccd2691
+        SubnetIds:
+          - subnet-65ff583c
+          - subnet-894624ec
+          - subnet-b05fdfc7
+      Timeout: 600
+      Events:
+        SQSAggregatorWatcherEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SQSMapperWatcherQueue.Arn
+            BatchSize: 1
+  ReducerWatcherFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: reducer-watcher.default
+      Runtime: nodejs8.10
+      Tracing: Active
+      CodeUri: reducer-watcher/dist/reducer-watcher
+      MemorySize: 512
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonSQSFullAccess
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eccd2691
+        SubnetIds:
+          - subnet-65ff583c
+          - subnet-894624ec
+          - subnet-b05fdfc7
+      Timeout: 600
+      Events:
+        SQSAggregatorWatcherEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SQSReducerWatcherQueue.Arn
+            BatchSize: 1
+  AggregatorWatcherFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: aggregator-watcher
+      Runtime: nodejs8.10
+      CodeUri: aggregator-watcher/dist/aggregator-watcher
+      MemorySize: 512
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - AmazonSQSFullAccess
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eccd2691
+        SubnetIds:
+          - subnet-65ff583c
+          - subnet-894624ec
+          - subnet-b05fdfc7
+      Timeout: 600
+      Events:
+        SQSAggregatorWatcherEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SQSAggregatorWatcherQueue.Arn
+            BatchSize: 1
+  # Lambda function that acts as a mapper
+  MapperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: mapper.default
+      Runtime: nodejs8.10
+      CodeUri: mapper/dist/mapper
+      MemorySize: 512
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eccd2691
+        SubnetIds:
+          - subnet-65ff583c
+          - subnet-894624ec
+          - subnet-b05fdfc7
+      Timeout: 600
+      Events:
+        SQSMapperRequestedEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SQSMapperInputQueue.Arn
+            BatchSize: 5
+  # Lambda function that acts as a reducer
+  ReducerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: reducer.default
+      Runtime: nodejs8.10
+      CodeUri: reducer/dist/reducer
+      MemorySize: 512
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eccd2691
+        SubnetIds:
+          - subnet-65ff583c
+          - subnet-894624ec
+          - subnet-b05fdfc7
+      Timeout: 600
+      Events:
+        SQSReducerRequestedEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SQSReducerInputQueue.Arn
+            BatchSize: 10
+  # Lambda function that serves as an aggregator, and stores the final result in S3
+  AggregatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: reducer.default
+      Runtime: nodejs8.10
+      CodeUri: reducer/dist/reducer
+      MemorySize: 512
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+        - SecretsManagerReadWrite
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-eccd2691
+        SubnetIds:
+          - subnet-65ff583c
+          - subnet-894624ec
+          - subnet-b05fdfc7
+      Timeout: 600
+      Events:
+        SQSAggregatorRequestedEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt SQSAggregatorTriggerQueue.Arn
+            # There should always only be one message
+            BatchSize: 1
