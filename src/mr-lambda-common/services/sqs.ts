@@ -21,6 +21,7 @@ export class Sqs {
 						resolve();
 						return;
 					}
+					console.log('sent message to queue', data);
 					resolve();
 				},
 			);

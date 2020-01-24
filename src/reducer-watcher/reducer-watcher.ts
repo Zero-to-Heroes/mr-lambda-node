@@ -20,8 +20,8 @@ const db = new Db();
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
 	console.log('event', event);
-	const triggerEvent: TriggerWatcherEvent = event.records.map(event => event.body)[0];
 	const start = Date.now();
+	const triggerEvent: TriggerWatcherEvent = event.Records.map(event => JSON.parse(event.body))[0];
 	const numberOfReducers = triggerEvent.expectedNumberOfFiles;
 	let numberOfFiles = 0;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < numberOfReducers) {
@@ -32,7 +32,7 @@ export default async (event): Promise<any> => {
 		// where we left, since if will always use the number of files as stored in db
 		if (Date.now() - start > TIMEOUT_LIMIT && Date.now() - start < MAX_ALLOWED_EXECUTION_TIME) {
 			console.log('Sending new message to queue to continue the process');
-			sqs.sendMessageToQueue(triggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
+			await sqs.sendMessageToQueue(triggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
 			return;
 		}
 	}
@@ -45,7 +45,7 @@ export default async (event): Promise<any> => {
 		jobRootFolder: triggerEvent.jobRootFolder,
 		expectedNumberOfFiles: 1,
 	};
-	sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_AGGREGATOR_WATCHER_URL);
+	await sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_AGGREGATOR_WATCHER_URL);
 	console.log("Job's done! Passing the baton ", newTriggerEvent);
 	return { statusCode: 200, body: '' };
 };

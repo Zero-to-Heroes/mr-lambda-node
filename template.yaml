@@ -62,41 +62,33 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: driver/driver.default
-            Runtime: nodejs8.10
+            Runtime: nodejs10.x
             Timeout: 360
             Tracing: Active
-            CodeUri: driver/dist/driver
+            CodeUri: dist/driver/driver
             MemorySize: 2048
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
-                - AmazonSQSFullAccess
                 - SecretsManagerReadWrite
-            VpcConfig:
-                SecurityGroupIds:
-                    - sg-eccd2691
-                SubnetIds:
-                    - subnet-65ff583c
-                    - subnet-894624ec
-                    - subnet-b05fdfc7
+                - AmazonSESFullAccess
+                - AmazonSNSReadOnlyAccess
+                - AmazonSQSFullAccess
+                - AmazonS3FullAccess
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:
             Handler: mapper-watcher/mapper-watcher.default
-            Runtime: nodejs8.10
+            Runtime: nodejs10.x
             Tracing: Active
-            CodeUri: mapper-watcher/dist/mapper-watcher
+            CodeUri: dist/mapper-watcher/mapper-watcher
             MemorySize: 512
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
-                - AmazonSQSFullAccess
                 - SecretsManagerReadWrite
-            VpcConfig:
-                SecurityGroupIds:
-                    - sg-eccd2691
-                SubnetIds:
-                    - subnet-65ff583c
-                    - subnet-894624ec
-                    - subnet-b05fdfc7
+                - AmazonSESFullAccess
+                - AmazonSNSReadOnlyAccess
+                - AmazonSQSFullAccess
+                - AmazonS3FullAccess
             Timeout: 600
             Events:
                 SQSAggregatorWatcherEvent:
@@ -108,21 +100,17 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: reducer-watcher/reducer-watcher.default
-            Runtime: nodejs8.10
+            Runtime: nodejs10.x
             Tracing: Active
-            CodeUri: reducer-watcher/dist/reducer-watcher
+            CodeUri: dist/reducer-watcher/reducer-watcher
             MemorySize: 512
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
-                - AmazonSQSFullAccess
                 - SecretsManagerReadWrite
-            VpcConfig:
-                SecurityGroupIds:
-                    - sg-eccd2691
-                SubnetIds:
-                    - subnet-65ff583c
-                    - subnet-894624ec
-                    - subnet-b05fdfc7
+                - AmazonSESFullAccess
+                - AmazonSNSReadOnlyAccess
+                - AmazonSQSFullAccess
+                - AmazonS3FullAccess
             Timeout: 600
             Events:
                 SQSAggregatorWatcherEvent:
@@ -134,20 +122,16 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: aggregator-watcher/aggregator-watcher.default
-            Runtime: nodejs8.10
-            CodeUri: aggregator-watcher/dist/aggregator-watcher
+            Runtime: nodejs10.x
+            CodeUri: dist/aggregator-watcher/aggregator-watcher
             MemorySize: 512
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
-                - AmazonSQSFullAccess
                 - SecretsManagerReadWrite
-            VpcConfig:
-                SecurityGroupIds:
-                    - sg-eccd2691
-                SubnetIds:
-                    - subnet-65ff583c
-                    - subnet-894624ec
-                    - subnet-b05fdfc7
+                - AmazonSESFullAccess
+                - AmazonSNSReadOnlyAccess
+                - AmazonSQSFullAccess
+                - AmazonS3FullAccess
             Timeout: 600
             Events:
                 SQSAggregatorWatcherEvent:
@@ -160,19 +144,16 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: mapper/mapper.default
-            Runtime: nodejs8.10
-            CodeUri: mapper/dist/mapper
+            Runtime: nodejs10.x
+            CodeUri: dist/mapper/mapper
             MemorySize: 512
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
-            VpcConfig:
-                SecurityGroupIds:
-                    - sg-eccd2691
-                SubnetIds:
-                    - subnet-65ff583c
-                    - subnet-894624ec
-                    - subnet-b05fdfc7
+                - AmazonSESFullAccess
+                - AmazonSNSReadOnlyAccess
+                - AmazonSQSFullAccess
+                - AmazonS3FullAccess
             Timeout: 600
             Events:
                 SQSMapperRequestedEvent:
@@ -185,19 +166,16 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: reducer/reducer.default
-            Runtime: nodejs8.10
-            CodeUri: reducer/dist/reducer
+            Runtime: nodejs10.x
+            CodeUri: dist/reducer/reducer
             MemorySize: 512
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
-            VpcConfig:
-                SecurityGroupIds:
-                    - sg-eccd2691
-                SubnetIds:
-                    - subnet-65ff583c
-                    - subnet-894624ec
-                    - subnet-b05fdfc7
+                - AmazonSESFullAccess
+                - AmazonSNSReadOnlyAccess
+                - AmazonSQSFullAccess
+                - AmazonS3FullAccess
             Timeout: 600
             Events:
                 SQSReducerRequestedEvent:
@@ -210,19 +188,16 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: reducer/reducer.default
-            Runtime: nodejs8.10
-            CodeUri: reducer/dist/reducer
+            Runtime: nodejs10.x
+            CodeUri: dist/reducer/reducer
             MemorySize: 512
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
-            VpcConfig:
-                SecurityGroupIds:
-                    - sg-eccd2691
-                SubnetIds:
-                    - subnet-65ff583c
-                    - subnet-894624ec
-                    - subnet-b05fdfc7
+                - AmazonSESFullAccess
+                - AmazonSNSReadOnlyAccess
+                - AmazonSQSFullAccess
+                - AmazonS3FullAccess
             Timeout: 600
             Events:
                 SQSAggregatorRequestedEvent:

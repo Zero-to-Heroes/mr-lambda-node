@@ -29,28 +29,30 @@ export class Db {
 
 	public async countFilesCompleted(jobName: string, step: string): Promise<number> {
 		const mysql = await getConnection();
-		const result = await mysql.query(`
-			SELECT count(*) FROM mr_log 
+		const result: any = await mysql.query(`
+			SELECT count(*) as count FROM mr_log 
 			WHERE jobName = '${jobName}' AND step = '${step}'`);
-		console.log('counted files completed', jobName, step, result);
-		return result as number;
+		console.log('counted files completed', jobName, step, result[0].count);
+		return parseInt(result[0].count);
 	}
 
 	public async hasEntry(jobName: string, step: string, reviewId: string): Promise<boolean> {
 		const mysql = await getConnection();
-		const result = await mysql.query(`
-			SELECT count(*) FROM mr_log 
+		const result: any[] = await mysql.query(`
+			SELECT count(*) as count 
+			FROM mr_log 
 			WHERE jobName = '${jobName}' AND step = '${step}' AND reviewId = '${reviewId}'`);
-		console.log('has entry', jobName, step, reviewId, result);
-		return result > 0;
+		console.log('has entry', jobName, step, reviewId, result[0].count);
+		return parseInt(result[0].count) > 0;
 	}
 
 	public async getFilesKeys(jobName: string, step: string): Promise<readonly string[]> {
 		const mysql = await getConnection();
-		const result = await mysql.query(`
-			SELECT concat(jobName, '/', step, '/', fileKey) FROM mr_log 
+		const dbResult: any[] = await mysql.query(`
+			SELECT concat(jobName, '/', step, '/', fileKey) as fileKey FROM mr_log 
 			WHERE jobName = '${jobName}' AND step = '${step}'`);
-		console.log('file keys', jobName, step, result);
+		const result = dbResult.map(db => db.fileKey);
+		console.log('file keys', jobName, step, dbResult, result);
 		return result as readonly string[];
 	}
 }

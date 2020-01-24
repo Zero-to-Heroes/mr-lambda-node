@@ -18,7 +18,7 @@ const db = new Db();
 export default async (event): Promise<any> => {
 	console.log('event', event);
 	const start = Date.now();
-	const triggerEvent: TriggerWatcherEvent = event.records.map(event => event.body)[0];
+	const triggerEvent: TriggerWatcherEvent = event.Records.map(event => JSON.parse(event.body))[0];
 
 	let numberOfFiles = 0;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < 1) {
@@ -28,7 +28,7 @@ export default async (event): Promise<any> => {
 		// We start a new process before this one times out, and the new process will resume
 		// where we left, since if will always use the number of files as stored in db
 		if (Date.now() - start > TIMEOUT_LIMIT && Date.now() - start < MAX_ALLOWED_EXECUTION_TIME) {
-			sqs.sendMessageToQueue(triggerEvent, process.env.SQS_AGGREGATOR_WATCHER_URL);
+			await sqs.sendMessageToQueue(triggerEvent, process.env.SQS_AGGREGATOR_WATCHER_URL);
 			return;
 		}
 	}

@@ -1,3 +1,5 @@
+import fetch, { RequestInfo } from 'node-fetch';
+
 function partitionArray<T>(array: readonly T[], partitionSize: number): readonly T[][] {
 	const workingCopy: T[] = [...array];
 	const result: T[][] = [];
@@ -10,10 +12,15 @@ function partitionArray<T>(array: readonly T[], partitionSize: number): readonly
 async function http(request: RequestInfo): Promise<any> {
 	return new Promise(resolve => {
 		fetch(request)
-			.then(response => {
-				console.log('received response, reading text body');
-				return response.text();
-			})
+			.then(
+				response => {
+					console.log('received response, reading text body');
+					return response.text();
+				},
+				error => {
+					console.log('could not retrieve review', error);
+				},
+			)
 			.then(body => {
 				console.log('sending back body', body && body.length);
 				resolve(body);

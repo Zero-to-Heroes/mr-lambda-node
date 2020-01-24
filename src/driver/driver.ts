@@ -16,12 +16,12 @@ const sqs = new Sqs();
 export default async (event): Promise<any> => {
 	console.log('event', event);
 	const jobName: string = event.jobName;
-	const jobBucketName = Date.now() + '-' + jobName + '-' + Math.random() * 1000000;
+	const jobBucketName = jobName + '-' + Date.now();
 	console.log('starting map/reduce on lambda', jobName);
 	const reviewIds: readonly string[] = await implementation.loadReviewIds();
-	startMappingPhase(reviewIds, jobBucketName);
+	await startMappingPhase(reviewIds, jobBucketName);
 	console.log('mapping phase trigger sent');
-	sqs.sendMessageToQueue(
+	await sqs.sendMessageToQueue(
 		{
 			bucket: process.env.S3_BUCKET,
 			folder: MAPPER_FOLDER,
@@ -33,11 +33,13 @@ export default async (event): Promise<any> => {
 	return { statusCode: 200, body: '' };
 };
 
-const startMappingPhase = (reviewIds: readonly string[], jobBucketName: string) => {
+const startMappingPhase = async (reviewIds: readonly string[], jobBucketName: string) => {
 	console.log('about to handle', reviewIds.length, 'files');
 	const idsPerMapper: readonly string[][] = partitionArray(reviewIds, REVIEWS_PER_MAPPER);
+	console.log('idsPerMapper', idsPerMapper.length);
 	const mapEvents = idsPerMapper.map(idsForMapper => buildSqsMapEvents(idsForMapper, jobBucketName));
-	sqs.sendMessageToQueue(mapEvents, process.env.SQS_MAPPER_URL);
+	console.log('mapEvents', mapEvents.length);
+	await sqs.sendMessageToQueue(mapEvents, process.env.SQS_MAPPER_URL);
 	console.log('sent all SQS messages to mapper');
 };
 

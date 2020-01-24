@@ -22,9 +22,10 @@ const db = new Db();
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
 	console.log('event', event);
-	const triggerEvent: TriggerWatcherEvent = event.records.map(event => event.body)[0];
 	const start = Date.now();
+	const triggerEvent: TriggerWatcherEvent = event.Records.map(event => JSON.parse(event.body))[0];
 	const numberOfMappers = triggerEvent.expectedNumberOfFiles;
+	console.log('triggerEvent', triggerEvent, numberOfMappers);
 	let numberOfFiles = 0;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < numberOfMappers) {
 		console.log('mapping completion progress', numberOfFiles + '/' + numberOfMappers);
@@ -33,7 +34,7 @@ export default async (event): Promise<any> => {
 		// We start a new process before this one times out, and the new process will resume
 		// where we left, since if will always use the number of files as stored in db
 		if (Date.now() - start > TIMEOUT_LIMIT && Date.now() - start < MAX_ALLOWED_EXECUTION_TIME) {
-			sqs.sendMessageToQueue(triggerEvent, process.env.SQS_MAPPER_WATCHER_URL);
+			await sqs.sendMessageToQueue(triggerEvent, process.env.SQS_MAPPER_WATCHER_URL);
 			return;
 		}
 	}
@@ -49,8 +50,8 @@ export default async (event): Promise<any> => {
 		jobRootFolder: triggerEvent.jobRootFolder,
 		expectedNumberOfFiles: reduceEvents.length,
 	};
-	sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
 	console.log("Job's done! Passing the baton ", newTriggerEvent);
+	await sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
 	return { statusCode: 200, body: '' };
 };
 
@@ -60,6 +61,7 @@ const startReducerPhase = async (
 ): Promise<readonly ReduceEvent[]> => {
 	// Lists.partition(mapperOutputFileKeys, mappingPerReducer).stream()
 	const fileKeysPerMapper: readonly string[][] = partitionArray(mapperOutputFileKeys, MAPPING_PER_REDUCER);
+	console.log('grouping file keys per mapper', mapperOutputFileKeys, fileKeysPerMapper);
 	const reduceEvents: readonly ReduceEvent[] = fileKeysPerMapper.map(files => buildReduceEvent(files, jobRootFolder));
 	console.log('Built SQS reducer events to send: ' + reduceEvents.length);
 	console.log('First event: ' + reduceEvents[0]);

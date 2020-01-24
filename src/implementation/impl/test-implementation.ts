@@ -9,15 +9,17 @@ import { Implementation } from '../implementation';
 export class TestImplementation implements Implementation {
 	public async loadReviewIds(): Promise<readonly string[]> {
 		const mysql = await getConnection();
-		const dbResults: readonly string[] = await mysql.query(
+		const dbResults: any[] = await mysql.query(
 			`
 			SELECT reviewId 
 			FROM replay_summary 
 			WHERE scenarioId = 252
+			LIMIT 10
 		`,
 		);
-		console.log('loaded DB results', dbResults);
-		return dbResults;
+		const result = dbResults.map(result => result.reviewId);
+		console.log('loaded DB results', result.length);
+		return result;
 	}
 
 	public async extractMetric(replay: Replay, miniReview: MiniReview): Promise<any> {
@@ -44,16 +46,24 @@ export class TestImplementation implements Implementation {
 	}
 
 	public async mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput> {
-		const cardsInFirstDeck = Object.keys(currentResult.output);
-		const cardsInSecondDeck = Object.keys(newResult.output);
-		console.log('cards in decks', cardsInFirstDeck, cardsInSecondDeck);
+		// console.log('merging reduce results', currentResult, newResult);
+		const firstDeck = currentResult.output || {};
+		const secondDeck = newResult.output || {};
+		const cardsInFirstDeck = Object.keys(firstDeck);
+		const cardsInSecondDeck = Object.keys(secondDeck);
+		// console.log('cards in decks', cardsInFirstDeck, cardsInSecondDeck);
 		const result = {};
 		for (const cardId of cardsInFirstDeck) {
-			result[cardId] = Math.max(cardsInFirstDeck[cardId], cardsInSecondDeck[cardId] || 0);
+			// console.log('assigning', cardId, firstDeck[cardId], secondDeck[cardId]);
+			result[cardId] = Math.max(firstDeck[cardId] || 0, secondDeck[cardId] || 0);
+			// console.log('resulting', result[cardId]);
 		}
 		for (const cardId of cardsInSecondDeck) {
-			result[cardId] = Math.max(cardsInSecondDeck[cardId], cardsInFirstDeck[cardId] || 0);
+			// console.log('assigning 2', cardId, firstDeck[cardId], secondDeck[cardId]);
+			result[cardId] = Math.max(secondDeck[cardId] || 0, firstDeck[cardId] || 0);
+			// console.log('resulting 2', result[cardId]);
 		}
+		// console.log('result', result);
 		return {
 			output: result,
 		} as ReduceOutput;
