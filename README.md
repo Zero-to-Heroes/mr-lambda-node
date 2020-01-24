@@ -1,3 +1,13 @@
-mvn clean package \
-  && aws cloudformation package --template-file sam.yaml --output-template-file output-sam.yaml --s3-bucket com.zerotoheroes.artifact \
-  && aws cloudformation deploy --template-file output-sam.yaml --stack-name MRLambdaStack --capabilities CAPABILITY_IAM
+# Test it
+
+?
+
+# Deploy
+
+```
+npm run build && npm run package && npm run deploy
+```
+
+# Reference
+
+Used this project as template: https://github.com/alukach/aws-sam-typescript-boilerplate
