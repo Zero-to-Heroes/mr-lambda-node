@@ -2,12 +2,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { SecretsManager } from 'aws-sdk';
 import { GetSecretValueRequest, GetSecretValueResponse } from 'aws-sdk/clients/secretsmanager';
-import MySQLServerless from 'serverless-mysql';
+import { default as MySQLServerless, default as serverlessMysql } from 'serverless-mysql';
 
 const secretsManager = new SecretsManager({ region: 'us-west-2' });
 let connection, connectionPromise;
 
-const connect = async () => {
+const connect = async (): Promise<serverlessMysql.ServerlessMysql> => {
 	const secretRequest: GetSecretValueRequest = {
 		SecretId: 'rds-connection',
 	};
@@ -20,10 +20,11 @@ const connect = async () => {
 		port: secret.port,
 	};
 	connection = MySQLServerless({ config });
+
 	return connection;
 };
 
-const getConnection = async () => {
+const getConnection = async (): Promise<serverlessMysql.ServerlessMysql> => {
 	if (connection) {
 		return connection;
 	}
@@ -35,7 +36,7 @@ const getConnection = async () => {
 	return connectionPromise;
 };
 
-export default { getConnection };
+export { getConnection };
 
 const getSecret = (secretRequest: GetSecretValueRequest) => {
 	return new Promise<SecretInfo>(resolve => {

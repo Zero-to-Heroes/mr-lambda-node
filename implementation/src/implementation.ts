@@ -1,3 +1,4 @@
+import { Replay } from '@firestone-hs/hs-replay-xml-parser';
 import { MiniReview } from '../../mr-lambda-common/src/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/src/models/reduce-output';
 import { TestImplementation } from './impl/test-implementation';
@@ -5,7 +6,7 @@ import { TestImplementation } from './impl/test-implementation';
 export interface Implementation {
 	mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput>;
 	loadReviewIds(): Promise<readonly string[]>;
-	extractMetric(replayAsString: string, miniReview: MiniReview): Promise<any>;
+	extractMetric(replay: Replay, miniReview: MiniReview): Promise<any>;
 }
 
 const currentImplementation: Implementation = new TestImplementation();

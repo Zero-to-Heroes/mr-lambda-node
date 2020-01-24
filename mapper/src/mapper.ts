@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
+import { parseHsReplayString, Replay } from '@firestone-hs/hs-replay-xml-parser';
 import { implementation } from '../../implementation/src/implementation';
 import { MapEvent } from '../../mr-lambda-common/src/models/map-event';
 import { MapOutput } from '../../mr-lambda-common/src/models/map-output';
@@ -62,8 +63,9 @@ const processMapEvent = async (reviewId: string) => {
 	if (!miniReview.authorId) {
 		console.warn('Missing author id', miniReview);
 	}
-	const replayAsString = await s3.readContentAsString('com.zerotoheroes.output', miniReview.key);
-	console.log('Loaded replay as a string. First characters are ' + replayAsString.substring(0, 100));
-	const output = await implementation.extractMetric(replayAsString, miniReview);
+	const replayString = await s3.readContentAsString('com.zerotoheroes.output', miniReview.key);
+	console.log('Loaded replay as a string. First characters are ' + replayString.substring(0, 100));
+	const replay: Replay = parseHsReplayString(replayString);
+	const output = await implementation.extractMetric(replay, miniReview);
 	return output;
 };

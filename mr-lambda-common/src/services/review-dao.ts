@@ -1,5 +1,5 @@
-import { MiniReview } from "../models/mini-review";
-import { http } from "./utils";
+import { MiniReview } from '../models/mini-review';
+import { http } from './utils';
 
 const REVIEW_API = 'https://www.zerotoheroes.com/api/reviews/';
 
