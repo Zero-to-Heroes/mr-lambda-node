@@ -18,7 +18,7 @@ export class S3 {
 					return;
 				}
 				const objectContent = data.Body.toString('utf8');
-				console.log('read object content', bucketName, key, objectContent);
+				console.log('read object content', bucketName, key);
 				resolve(objectContent);
 			});
 		});

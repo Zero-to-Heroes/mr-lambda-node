@@ -4,6 +4,7 @@ import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { TestImplementation } from './impl/test-implementation';
 
 export interface Implementation {
+	transformOutput(output: ReduceOutput): Promise<ReduceOutput>;
 	mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput>;
 	loadReviewIds(): Promise<readonly string[]>;
 	extractMetric(replay: Replay, miniReview: MiniReview): Promise<any>;
