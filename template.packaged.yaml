@@ -21,7 +21,7 @@ Globals:
 Resources:
   AggregatorFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/7559ac6bdcc0968027b41026d4be7c3b
+      CodeUri: s3://com.zerotoheroes.artifact/05edc45363dc8de737fbe02a5ff53eb7
       Events:
         SQSAggregatorRequestedEvent:
           Properties:
@@ -45,7 +45,7 @@ Resources:
     Type: AWS::Serverless::Function
   AggregatorWatcherFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/c0a25f9f7875d6b9304d3f553881ccc7
+      CodeUri: s3://com.zerotoheroes.artifact/5f1cf319582c45f50faaaaf988fe4800
       Events:
         SQSAggregatorWatcherEvent:
           Properties:
@@ -69,7 +69,7 @@ Resources:
     Type: AWS::Serverless::Function
   DriverFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/b9e4fd313be14694e3cf2840a2bdd9de
+      CodeUri: s3://com.zerotoheroes.artifact/3ba1b107c86e551ad0b7b92475831f98
       Handler: driver/driver.default
       MemorySize: 2048
       Policies:
@@ -85,11 +85,11 @@ Resources:
     Type: AWS::Serverless::Function
   MapperFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/d86653da98a3fd0b504f4031fcc16d6b
+      CodeUri: s3://com.zerotoheroes.artifact/6d0ae3c770a1dcda1d8c473f55820d8d
       Events:
         SQSMapperRequestedEvent:
           Properties:
-            BatchSize: 5
+            BatchSize: 1
             Queue:
               Fn::GetAtt:
               - SQSMapperInputQueue
@@ -109,7 +109,7 @@ Resources:
     Type: AWS::Serverless::Function
   MapperWatcherFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/2449d1d78df566fa9c8ed9a6444b0b9b
+      CodeUri: s3://com.zerotoheroes.artifact/2d702a889118b5fedc8172ca35a07e7a
       Events:
         SQSAggregatorWatcherEvent:
           Properties:
@@ -134,11 +134,11 @@ Resources:
     Type: AWS::Serverless::Function
   ReducerFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/7559ac6bdcc0968027b41026d4be7c3b
+      CodeUri: s3://com.zerotoheroes.artifact/05edc45363dc8de737fbe02a5ff53eb7
       Events:
         SQSReducerRequestedEvent:
           Properties:
-            BatchSize: 10
+            BatchSize: 1
             Queue:
               Fn::GetAtt:
               - SQSReducerInputQueue
@@ -158,7 +158,7 @@ Resources:
     Type: AWS::Serverless::Function
   ReducerWatcherFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/aeb217263dea1a6400e8db952a986d3a
+      CodeUri: s3://com.zerotoheroes.artifact/d574771b96535e68cbbe1dd6b6ad837e
       Events:
         SQSAggregatorWatcherEvent:
           Properties:

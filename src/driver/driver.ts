@@ -6,7 +6,7 @@ import { Sqs } from '../mr-lambda-common/services/sqs';
 import { partitionArray } from '../mr-lambda-common/services/utils';
 
 const MAPPER_FOLDER = 'mapper';
-const REVIEWS_PER_MAPPER = 300;
+const REVIEWS_PER_MAPPER = 25;
 
 const sqs = new Sqs();
 
@@ -36,10 +36,10 @@ export default async (event): Promise<any> => {
 const startMappingPhase = async (reviewIds: readonly string[], jobBucketName: string) => {
 	console.log('about to handle', reviewIds.length, 'files');
 	const idsPerMapper: readonly string[][] = partitionArray(reviewIds, REVIEWS_PER_MAPPER);
-	console.log('idsPerMapper', idsPerMapper.length);
+	console.log('idsPerMapper', idsPerMapper.length, idsPerMapper);
 	const mapEvents = idsPerMapper.map(idsForMapper => buildSqsMapEvents(idsForMapper, jobBucketName));
 	console.log('mapEvents', mapEvents.length);
-	await sqs.sendMessageToQueue(mapEvents, process.env.SQS_MAPPER_URL);
+	await sqs.sendMessagesToQueue(mapEvents, process.env.SQS_MAPPER_URL);
 	console.log('sent all SQS messages to mapper');
 };
 

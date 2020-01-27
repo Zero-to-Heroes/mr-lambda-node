@@ -70,6 +70,9 @@ const processMapEvent = async (reviewId: string) => {
 	const replayString = await s3.readContentAsString('com.zerotoheroes.output', miniReview.key);
 	console.log('Loaded replay as a string. First characters are ' + replayString.substring(0, 100));
 	const replay: Replay = parseHsReplayString(replayString);
+	if (!replay) {
+		return null;
+	}
 	const output = await implementation.extractMetric(replay, miniReview);
 	return output;
 };

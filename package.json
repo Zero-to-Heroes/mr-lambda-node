@@ -16,10 +16,11 @@
 	"license": "MIT",
 	"private": true,
 	"dependencies": {
-		"@firestone-hs/hs-replay-xml-parser": "0.0.18",
+		"@firestone-hs/hs-replay-xml-parser": "0.0.19",
 		"@firestone-hs/reference-data": "^0.1.9",
 		"@firestone-hs/replay-parser": "0.0.9",
 		"aws-sdk": "^2.524.0",
+		"deckstrings": "^2.1.0",
 		"elementtree": "^0.1.7",
 		"immutable": "3.8.2",
 		"lodash-es": "4.17.15",

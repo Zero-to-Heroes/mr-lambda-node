@@ -64,11 +64,11 @@ const processReduceEvent = async (reduceEvent: ReduceEvent): Promise<ReduceOutpu
 
 const loadFileContent = async (fileKey: string, inputBucket: string): Promise<any> => {
 	const strMapOutput = await s3.readContentAsString(inputBucket, fileKey);
-	return JSON.parse(strMapOutput);
+	return strMapOutput ? JSON.parse(strMapOutput) : null;
 };
 
 const toReduceOutput = (mapOutput: MapOutput): ReduceOutput => {
 	return {
-		output: mapOutput.output,
+		output: mapOutput ? mapOutput.output : null,
 	} as ReduceOutput;
 };
