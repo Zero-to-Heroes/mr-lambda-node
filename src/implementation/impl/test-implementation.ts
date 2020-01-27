@@ -20,7 +20,7 @@ export class TestImplementation implements Implementation {
 		`,
 		);
 		const result = dbResults.map(result => result.reviewId);
-		console.log('loaded DB results', result.length);
+		// console.log('loaded DB results', result.length);
 		return result;
 	}
 
@@ -29,7 +29,11 @@ export class TestImplementation implements Implementation {
 			console.warn('empty replay', miniReview.id, miniReview.key);
 			return null;
 		}
-		console.log('extracting metric');
+		if ([252, 256, 259, 263, 261, 258, 257, 262, 253].indexOf(replay.scenarioId) === -1) {
+			console.warn('invalid scenario id', replay.scenarioId);
+			return null;
+		}
+		// console.log('extracting metric');
 		const opponentHeroEntityId = parseInt(
 			replay.replay
 				.findall(`.//Player`)
@@ -37,9 +41,9 @@ export class TestImplementation implements Implementation {
 				.find(`Tag[@tag='${GameTag.HERO_ENTITY}']`)
 				.get('value'),
 		);
-		console.log('opponentHeroEntityId', opponentHeroEntityId);
+		// console.log('opponentHeroEntityId', opponentHeroEntityId);
 		const opponentCardId = replay.replay.find(`.//FullEntity[@id='${opponentHeroEntityId}']`).get('cardID');
-		console.log('opponentCardId', opponentCardId);
+		// console.log('opponentCardId', opponentCardId);
 		const fullEntities = this.buildFullEntities(
 			[...replay.replay.findall(`.//FulllEntity`)],
 			replay.opponentPlayerId,
@@ -55,9 +59,9 @@ export class TestImplementation implements Implementation {
 				allEntities.push(showEntity);
 			}
 		}
-		console.log('entityElements', allEntities.length);
+		// console.log('entityElements', allEntities.length);
 		const cardIdsInStartingDeck = allEntities.map(entity => entity.get('cardID'));
-		console.log('list of cards starting in opponents deck', cardIdsInStartingDeck);
+		// console.log('list of cards starting in opponents deck', cardIdsInStartingDeck);
 		const grouped = cardIdsInStartingDeck.reduce((acc, val) => {
 			acc[val] = (acc[val] || 0) + 1;
 			if (acc[val] > 2) {
@@ -65,7 +69,7 @@ export class TestImplementation implements Implementation {
 			}
 			return acc;
 		}, {});
-		console.log('grouped', grouped);
+		// console.log('grouped', grouped);
 		const output = [
 			{
 				opponentCardId: opponentCardId,
@@ -74,7 +78,7 @@ export class TestImplementation implements Implementation {
 				numberOfGames: 1,
 			} as Output,
 		];
-		console.log('output', output);
+		// console.log('output', output);
 		return output;
 	}
 
@@ -154,7 +158,7 @@ export class TestImplementation implements Implementation {
 			opponentCardId: firstInfo.opponentCardId || secondInfo.opponentCardId,
 			scenarioId: firstInfo.scenarioId || secondInfo.scenarioId,
 			cards: cards,
-			numberOfGames: firstInfo.numberOfGames + secondInfo.numberOfGames,
+			numberOfGames: (firstInfo.numberOfGames || 0) + (secondInfo.numberOfGames || 0),
 		};
 		return result;
 	}
@@ -162,7 +166,7 @@ export class TestImplementation implements Implementation {
 	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
 		const cards = new AllCardsService();
 		await cards.initializeCardsDb();
-		console.log('transforming output', output);
+		// console.log('transforming output', output);
 		return {
 			output: this.transform(output.output, cards),
 		} as ReduceOutput;
@@ -174,7 +178,7 @@ export class TestImplementation implements Implementation {
 
 	private transformSingleOutput(output: Output, cards: AllCardsService): FinalOutput {
 		const heroCard = cards.getCard(output.opponentCardId);
-		const comment = `${heroCard.name} deck (${output.numberOfGames} games)`;
+		const comment = `Innkeeper ${heroCard.name} deck (Normal) (${output.numberOfGames} games)`;
 		const cardsForDeckstring = [];
 		const cardNames = {};
 		for (const cardId of Object.keys(output.cards)) {

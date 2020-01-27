@@ -16,11 +16,11 @@ const reviewDao = new ReviewDao();
 // the more traditional callback-style handler.
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
-	console.log('event', event.Records);
+	// console.log('event', event.Records);
 	const mapEvents: readonly MapEvent[] = (event.Records as any[])
 		.map(event => JSON.parse(event.body))
 		.reduce((a, b) => a.concat(b), []);
-	console.log('handling map events', mapEvents.length, mapEvents);
+	console.log('handling map events', mapEvents.length);
 	// let currentMapEvent = 0;
 	for (const mapEvent of mapEvents) {
 		// currentMapEvent++;
@@ -64,11 +64,11 @@ export default async (event): Promise<any> => {
 };
 
 const processMapEvent = async (reviewId: string) => {
-	console.log('procesing review id', reviewId);
+	// console.log('procesing review id', reviewId);
 	const miniReview: MiniReview = await reviewDao.getMiniReview(reviewId);
-	console.log('loaded mini review', miniReview.key, miniReview['key'], miniReview);
+	// console.log('loaded mini review', miniReview.key, miniReview['key'], miniReview);
 	const replayString = await s3.readContentAsString('com.zerotoheroes.output', miniReview.key);
-	console.log('Loaded replay as a string. First characters are ' + replayString.substring(0, 100));
+	// console.log('Loaded replay as a string. First characters are ' + replayString.substring(0, 100));
 	const replay: Replay = parseHsReplayString(replayString);
 	if (!replay) {
 		return null;

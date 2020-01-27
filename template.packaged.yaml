@@ -21,7 +21,7 @@ Globals:
 Resources:
   AggregatorFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/05edc45363dc8de737fbe02a5ff53eb7
+      CodeUri: s3://com.zerotoheroes.artifact/26590147560b8c628079a2b68ee737c8
       Events:
         SQSAggregatorRequestedEvent:
           Properties:
@@ -45,7 +45,7 @@ Resources:
     Type: AWS::Serverless::Function
   AggregatorWatcherFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/5f1cf319582c45f50faaaaf988fe4800
+      CodeUri: s3://com.zerotoheroes.artifact/ab8b9f6269ab8b50fe9dc5838f9c5b4a
       Events:
         SQSAggregatorWatcherEvent:
           Properties:
@@ -69,9 +69,9 @@ Resources:
     Type: AWS::Serverless::Function
   DriverFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/3ba1b107c86e551ad0b7b92475831f98
+      CodeUri: s3://com.zerotoheroes.artifact/472dc2c63401206eda3debff8ccda5c8
       Handler: driver/driver.default
-      MemorySize: 2048
+      MemorySize: 512
       Policies:
       - AWSLambdaVPCAccessExecutionRole
       - SecretsManagerReadWrite
@@ -85,7 +85,7 @@ Resources:
     Type: AWS::Serverless::Function
   MapperFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/6d0ae3c770a1dcda1d8c473f55820d8d
+      CodeUri: s3://com.zerotoheroes.artifact/5f9bab4bae5bf38528595b33fd0653a1
       Events:
         SQSMapperRequestedEvent:
           Properties:
@@ -109,7 +109,7 @@ Resources:
     Type: AWS::Serverless::Function
   MapperWatcherFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/2d702a889118b5fedc8172ca35a07e7a
+      CodeUri: s3://com.zerotoheroes.artifact/6804287840936e2641ec3965bdbb2d4c
       Events:
         SQSAggregatorWatcherEvent:
           Properties:
@@ -134,7 +134,7 @@ Resources:
     Type: AWS::Serverless::Function
   ReducerFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/05edc45363dc8de737fbe02a5ff53eb7
+      CodeUri: s3://com.zerotoheroes.artifact/26590147560b8c628079a2b68ee737c8
       Events:
         SQSReducerRequestedEvent:
           Properties:
@@ -158,7 +158,7 @@ Resources:
     Type: AWS::Serverless::Function
   ReducerWatcherFunction:
     Properties:
-      CodeUri: s3://com.zerotoheroes.artifact/d574771b96535e68cbbe1dd6b6ad837e
+      CodeUri: s3://com.zerotoheroes.artifact/0fc4711abb018121c0851c4b64d130a7
       Events:
         SQSAggregatorWatcherEvent:
           Properties:

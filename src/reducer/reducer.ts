@@ -13,35 +13,35 @@ const s3 = new S3();
 // the more traditional callback-style handler.
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
-	console.log('event', event);
+	// console.log('event', event);
 	const reduceEvents: readonly ReduceEvent[] = (event.Records as any[])
 		.map(event => JSON.parse(event.body))
 		.reduce((a, b) => a.concat(b), []);
-	console.log('handling', reduceEvents.length, 'reduce events');
+	// console.log('handling', reduceEvents.length, 'reduce events');
 
 	let currentReduceEvent = 0;
 	for (const reduceEvent of reduceEvents) {
 		currentReduceEvent++;
-		console.log('Processing reduce event ' + currentReduceEvent + '/' + reduceEvents.length);
+		// console.log('Processing reduce event ' + currentReduceEvent + '/' + reduceEvents.length);
 		const bucket = reduceEvent.bucket;
 		const jobRoot = reduceEvent.jobRootFolder;
 		const folder = reduceEvent.outputFolder;
 		const eventId = reduceEvent.eventId;
 		const fileName = 'reducer-' + eventId;
 		if (await db.hasEntry(jobRoot, folder, eventId)) {
-			console.log('!! Multiple processing: entry already exists: ' + jobRoot + '/' + folder + '/' + eventId);
+			console.warn('!! Multiple processing: entry already exists: ' + jobRoot + '/' + folder + '/' + eventId);
 			continue;
 		}
 		try {
 			await db.logEntry(jobRoot, folder, fileName, eventId, 'STARTED');
 		} catch (e) {
-			console.log('Error while inserting entry in db: ' + jobRoot + '/' + folder + '/' + eventId);
+			console.warn('Error while inserting entry in db: ' + jobRoot + '/' + folder + '/' + eventId);
 			continue;
 		}
 		const output: ReduceOutput = await processReduceEvent(reduceEvent);
 		const finalOutput: ReduceOutput = folder === 'result' ? await implementation.transformOutput(output) : output;
 		const fileKey: string = jobRoot + '/' + folder + '/' + fileName;
-		console.log('Writing file ', fileKey, ' with contents ', finalOutput, ' to bucket ', bucket);
+		// console.log('Writing file ', fileKey, ' with contents ', finalOutput, ' to bucket ', bucket);
 		await s3.writeFile(finalOutput, bucket, fileKey);
 		await db.updateEntry(jobRoot, folder, fileName, eventId, 'WRITTEN_TO_S3');
 	}
@@ -49,7 +49,7 @@ export default async (event): Promise<any> => {
 };
 
 const processReduceEvent = async (reduceEvent: ReduceEvent): Promise<ReduceOutput> => {
-	console.log('procesing reduce event', reduceEvent);
+	// console.log('procesing reduce event', reduceEvent);
 	const fileContents = await Promise.all(
 		reduceEvent.fileKeys.map(fileKey => loadFileContent(fileKey, reduceEvent.bucket)),
 	);
@@ -58,7 +58,7 @@ const processReduceEvent = async (reduceEvent: ReduceEvent): Promise<ReduceOutpu
 	for (const reduceOutput of reduceOutputs) {
 		reduce = await implementation.mergeReduceEvents(reduce, reduceOutput);
 	}
-	console.log('processed event', reduce);
+	// console.log('processed event', reduce);
 	return reduce;
 };
 

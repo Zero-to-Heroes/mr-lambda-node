@@ -14,15 +14,15 @@ async function http(request: RequestInfo): Promise<any> {
 		fetch(request)
 			.then(
 				response => {
-					console.log('received response, reading text body');
+					// console.log('received response, reading text body');
 					return response.text();
 				},
 				error => {
-					console.log('could not retrieve review', error);
+					console.warn('could not retrieve review', error);
 				},
 			)
 			.then(body => {
-				console.log('sending back body', body && body.length);
+				// console.log('sending back body', body && body.length);
 				resolve(body);
 			});
 	});

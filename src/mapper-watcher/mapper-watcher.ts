@@ -13,6 +13,7 @@ const MAX_ALLOWED_EXECUTION_TIME = 1000 * 60 * 60 * 2;
 const REDUCER_FOLDER = 'reducer';
 // Totally arbitrary, could be anything
 const MAPPING_PER_REDUCER = 50;
+const MAX_REDUCERS = 75;
 
 const sqs = new Sqs();
 const db = new Db();
@@ -21,15 +22,28 @@ const db = new Db();
 // the more traditional callback-style handler.
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
-	console.log('event', event);
+	// console.log('event', event);
 	const start = Date.now();
 	const triggerEvent: TriggerWatcherEvent = event.Records.map(event => JSON.parse(event.body))[0];
 	const numberOfMappers = triggerEvent.expectedNumberOfFiles;
-	console.log('triggerEvent', triggerEvent, numberOfMappers);
+	// console.log('triggerEvent', triggerEvent, numberOfMappers);
 	let numberOfFiles = 0;
+	let previousCompletion = 0;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < numberOfMappers) {
-		console.log('mapping completion progress', numberOfFiles + '/' + numberOfMappers);
+		console.log('mapping completion progress', numberOfFiles + '/' + numberOfMappers, previousCompletion);
 		await sleep(2000);
+		if (previousCompletion === -1) {
+			console.warn('Things are stuck, moving forward', numberOfFiles);
+			// We go on. Usually we don't really mind if things are stuck, it just reduces the sample size
+			break;
+		}
+		if (previousCompletion === numberOfFiles) {
+			// No update in the last step, usually that's a sign things are stuck
+			console.warn('No update since last tick', numberOfFiles);
+			previousCompletion = -1;
+		} else {
+			previousCompletion = numberOfFiles;
+		}
 
 		// We start a new process before this one times out, and the new process will resume
 		// where we left, since if will always use the number of files as stored in db
@@ -59,12 +73,12 @@ const startReducerPhase = async (
 	mapperOutputFileKeys: readonly string[],
 	jobRootFolder: string,
 ): Promise<readonly ReduceEvent[]> => {
-	// Lists.partition(mapperOutputFileKeys, mappingPerReducer).stream()
-	const fileKeysPerMapper: readonly string[][] = partitionArray(mapperOutputFileKeys, MAPPING_PER_REDUCER);
-	console.log('grouping file keys per mapper', mapperOutputFileKeys, fileKeysPerMapper);
+	const reviewsPerReducer = Math.ceil(Math.max(MAPPING_PER_REDUCER, mapperOutputFileKeys.length / MAX_REDUCERS));
+	const fileKeysPerMapper: readonly string[][] = partitionArray(mapperOutputFileKeys, reviewsPerReducer);
+	console.log('grouping file keys per mapper', mapperOutputFileKeys.length);
 	const reduceEvents: readonly ReduceEvent[] = fileKeysPerMapper.map(files => buildReduceEvent(files, jobRootFolder));
 	console.log('Built SQS reducer events to send: ' + reduceEvents.length);
-	console.log('First event: ' + reduceEvents[0]);
+	// console.log('First event: ' + reduceEvents[0]);
 	await sqs.sendMessagesToQueue(reduceEvents, process.env.SQS_REDUCER_URL);
 	console.log('Sent all SQS messages to reducers');
 	return reduceEvents;

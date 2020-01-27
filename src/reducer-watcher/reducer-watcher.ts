@@ -19,14 +19,27 @@ const db = new Db();
 // the more traditional callback-style handler.
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
-	console.log('event', event);
+	// console.log('event', event);
 	const start = Date.now();
 	const triggerEvent: TriggerWatcherEvent = event.Records.map(event => JSON.parse(event.body))[0];
 	const numberOfReducers = triggerEvent.expectedNumberOfFiles;
 	let numberOfFiles = 0;
+	let previousCompletion = 0;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < numberOfReducers) {
 		console.log('Reducing completion progress', numberOfFiles + '/' + numberOfReducers);
 		await sleep(2000);
+		if (previousCompletion === -1) {
+			console.warn('Things are stuck, moving forward', numberOfFiles);
+			// We go on. Usually we don't really mind if things are stuck, it just reduces the sample size
+			break;
+		}
+		if (previousCompletion === numberOfFiles) {
+			// No update in the last step, usually that's a sign things are stuck
+			console.warn('No update since last tick', numberOfFiles);
+			previousCompletion = -1;
+		} else {
+			previousCompletion = numberOfFiles;
+		}
 
 		// We start a new process before this one times out, and the new process will resume
 		// where we left, since if will always use the number of files as stored in db
@@ -61,7 +74,7 @@ const startAggregationPhase = async (
 		fileKeys: outputFileKeys,
 		eventId: uuid(),
 	} as ReduceEvent;
-	console.log('Built SQS aggregation event to send', aggregationEvent);
+	console.log('Built SQS aggregation event to send');
 	await sqs.sendMessageToQueue(aggregationEvent, process.env.SQS_AGGREGATOR_TRIGGER_URL);
 	console.log('Sent all SQS messages to reducers');
 	return aggregationEvent;
@@ -72,6 +85,6 @@ const countOutputFiles = async (event: TriggerWatcherEvent): Promise<number> => 
 };
 
 const outputFileKeys = async (event: TriggerWatcherEvent): Promise<readonly string[]> => {
-	console.log('Getting output file keys for ' + event.jobRootFolder + ' and ' + event.folder);
+	// console.log('Getting output file keys for ' + event.jobRootFolder + ' and ' + event.folder);
 	return await db.getFilesKeys(event.jobRootFolder, event.folder);
 };

@@ -10,7 +10,7 @@ export class S3 {
 	public async readContentAsString(bucketName: string, key: string): Promise<string> {
 		return new Promise<string>(resolve => {
 			const input = { Bucket: bucketName, Key: key };
-			console.log('getting s3 object', input);
+			// console.log('getting s3 object', input);
 			this.s3.getObject(input, (err, data) => {
 				if (err) {
 					console.error('could not read s3 object', bucketName, key, err);
@@ -18,7 +18,7 @@ export class S3 {
 					return;
 				}
 				const objectContent = data.Body.toString('utf8');
-				console.log('read object content', bucketName, key);
+				// console.log('read object content', bucketName, key);
 				resolve(objectContent);
 			});
 		});
