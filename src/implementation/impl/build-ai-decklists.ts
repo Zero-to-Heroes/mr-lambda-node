@@ -10,14 +10,61 @@ import { getConnection } from '../../mr-lambda-common/services/rds';
 import { Implementation } from '../implementation';
 
 export class BuildAiDecklists implements Implementation {
+	private invalidCardsIds = [
+		// The upgraded version of spellstones should never start in deck
+		'LOOT_103t1',
+		'LOOT_103t2',
+		'LOOT_043t2',
+		'LOOT_043t3',
+		'LOOT_051t1',
+		'LOOT_051t2',
+		'LOOT_064t1',
+		'LOOT_064t2',
+		'LOOT_080t2',
+		'LOOT_080t3',
+		'LOOT_091t1',
+		'LOOT_091t2',
+		'LOOT_203t2',
+		'LOOT_203t3',
+		'LOOT_503t',
+		'LOOT_503t2',
+		'LOOT_507t',
+		'LOOT_507t2',
+		'FB_Champs_LOOT_080t2',
+		'FB_Champs_LOOT_080t3',
+	];
 	public async loadReviewIds(): Promise<readonly string[]> {
 		const mysql = await getConnection();
 		// Innkeeper normal
+		// const dbResults: any[] = await mysql.query(
+		// 	`
+		// 	SELECT reviewId
+		// 	FROM replay_summary
+		// 	WHERE scenarioId in (252, 256, 259, 263, 261, 258, 257, 262, 253)
+		// `,
+		// );
+		// Innkeeper expert
+		// const dbResults: any[] = await mysql.query(
+		// 	`
+		// 	SELECT reviewId
+		// 	FROM replay_summary
+		// 	WHERE scenarioId in (260, 264, 265, 266, 267, 268, 269, 270, 271)
+		// `,
+		// );
+		// Galakrond's Awakening Normal
+		// const dbResults: any[] = await mysql.query(
+		// 	`
+		// 	SELECT reviewId
+		// 	FROM replay_summary
+		// 	WHERE scenarioId in (3469, 3470, 3471, 3484, 3488, 3489)
+		// `,
+		// );
+		// Galakrond's Awakening Heroic
 		const dbResults: any[] = await mysql.query(
 			`
 			SELECT reviewId
 			FROM replay_summary
-			WHERE scenarioId in (252, 256, 259, 263, 261, 258, 257, 262, 253)
+			WHERE scenarioId in (3556, 3583, 3584, 3594, 3595, 3596)
 		`,
 		);
 		const result = dbResults.map(result => result.reviewId);
@@ -30,10 +77,10 @@ export class BuildAiDecklists implements Implementation {
 			console.warn('empty replay', miniReview.id, miniReview.key);
 			return null;
 		}
-		if ([252, 256, 259, 263, 261, 258, 257, 262, 253].indexOf(replay.scenarioId) === -1) {
-			console.warn('invalid scenario id', replay.scenarioId);
-			return null;
-		}
+		// if ([3469, 3470, 3471, 3484, 3488, 3489].indexOf(replay.scenarioId) === -1) {
+		// 	console.warn('invalid scenario id', replay.scenarioId);
+		// 	return null;
+		// }
 
 		try {
 			const opponentHeroEntityId = parseInt(
@@ -66,7 +113,8 @@ export class BuildAiDecklists implements Implementation {
 					entity =>
 						!entity.find(`.Tag[@tag='${GameTag.CREATOR}']`) &&
 						!entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`),
-				);
+				)
+				.filter(entity => this.invalidCardsIds.indexOf(entity.get('cardID')) === -1);
 			// Because cards can change controllers during the game, we need to only consider the
 			// first time we see them
 			const uniqueEntities = [];
@@ -103,6 +151,7 @@ export class BuildAiDecklists implements Implementation {
 					opponentCardId: opponentCardId,
 					scenarioId: replay.scenarioId,
 					cards: grouped,
+					totalCardsSeen: grouped,
 					numberOfGames: 1,
 				} as Output,
 			];
@@ -113,22 +162,6 @@ export class BuildAiDecklists implements Implementation {
 			return null;
 		}
 	}
-
-	// public buildFullEntities(elements: Element[], playerId: number): Element[] {
-	// 	return (
-	// 		elements
-	// 			// We're only interested in known cards
-	// 			.filter(entity => entity.get('cardID'))
-	// 			// Cards controlled by the opponent
-	// 			.filter(entity => parseInt(entity.find(`.Tag[@tag='${GameTag.CONTROLLER}']`).get('value')) === playerId)
-	// 			// Cards that started in the deck
-	// 			.filter(
-	// 				entity =>
-	// 					!entity.find(`.Tag[@tag='${GameTag.CREATOR}']`) &&
-	// 					!entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`),
-	// 			)
-	// 	);
-	// }
 
 	public async mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput> {
 		if (!currentResult) {
@@ -171,18 +204,23 @@ export class BuildAiDecklists implements Implementation {
 	private mergeInfo(firstInfo: Output, secondInfo: Output): Output {
 		const firstDeck = firstInfo.cards || {};
 		const secondDeck = secondInfo.cards || {};
+		const firstSeen = firstInfo.totalCardsSeen || {};
+		const secondSeen = secondInfo.totalCardsSeen || {};
 		const cardsInFirstDeck = Object.keys(firstDeck);
 		const cardsInSecondDeck = Object.keys(secondDeck);
 		// console.log('cards in decks', cardsInFirstDeck, cardsInSecondDeck);
 		const cards: { [cardId: string]: number } = {};
+		const totalCardsSeen: { [cardId: string]: number } = {};
 		for (const cardId of cardsInFirstDeck) {
 			// console.log('assigning', cardId, firstDeck[cardId], secondDeck[cardId]);
 			cards[cardId] = Math.max(firstDeck[cardId] || 0, secondDeck[cardId] || 0);
+			totalCardsSeen[cardId] = (firstSeen[cardId] || 0) + (secondSeen[cardId] || 0);
 			// console.log('resulting', result[cardId]);
 		}
 		for (const cardId of cardsInSecondDeck) {
 			// console.log('assigning 2', cardId, firstDeck[cardId], secondDeck[cardId]);
 			cards[cardId] = Math.max(secondDeck[cardId] || 0, firstDeck[cardId] || 0);
+			totalCardsSeen[cardId] = (secondSeen[cardId] || 0) + (firstSeen[cardId] || 0);
 			// console.log('resulting 2', result[cardId]);
 		}
 		// console.log('result', result);
@@ -190,6 +228,7 @@ export class BuildAiDecklists implements Implementation {
 			opponentCardId: firstInfo.opponentCardId || secondInfo.opponentCardId,
 			scenarioId: firstInfo.scenarioId || secondInfo.scenarioId,
 			cards: cards,
+			totalCardsSeen: totalCardsSeen,
 			numberOfGames: (firstInfo.numberOfGames || 0) + (secondInfo.numberOfGames || 0),
 		};
 		return result;
@@ -218,6 +257,7 @@ export class BuildAiDecklists implements Implementation {
 			cardsForDeckstring.push([dbCard.dbfId, output.cards[cardId]]);
 			cardNames[dbCard.name] = output.cards[cardId];
 		}
+		const totalCardsInDeck = Object.values(output.cards).reduce((a, b) => a + b, 0);
 		const deckstring = encode({
 			cards: cardsForDeckstring,
 			heroes: [heroCard.dbfId],
@@ -228,7 +268,9 @@ export class BuildAiDecklists implements Implementation {
 			opponentCardId: output.opponentCardId,
 			scenarioIds: [output.scenarioId] as readonly number[],
 			deckstring: deckstring,
+			totalCardsInDeck: totalCardsInDeck,
 			cards: output.cards,
+			totalCardsSeen: output.totalCardsSeen,
 			cardNames: cardNames,
 		} as FinalOutput;
 	}
@@ -239,6 +281,7 @@ interface Output {
 	readonly scenarioId: number;
 	readonly numberOfGames: number;
 	readonly cards: { [cardId: string]: number };
+	readonly totalCardsSeen: { [cardId: string]: number };
 }
 
 interface FinalOutput {
@@ -247,7 +290,9 @@ interface FinalOutput {
 	readonly scenarioIds: readonly number[];
 	readonly numberOfGames: number;
 	readonly deckstring: string;
+	readonly totalCardsInDeck: number;
 	readonly cards: { [cardId: string]: number };
+	readonly totalCardsSeen: { [cardId: string]: number };
 	readonly cardNames: { [cardName: string]: number };
 }
 // const groupBy = (list, keyGetter): Map<string, number> => {
