@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser';
-import { GameTag } from '@firestone-hs/reference-data';
+import { GameTag, Zone } from '@firestone-hs/reference-data';
 import { encode } from 'deckstrings';
 import { Element } from 'elementtree';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
@@ -9,13 +9,14 @@ import { AllCardsService } from '../../mr-lambda-common/services/cards';
 import { getConnection } from '../../mr-lambda-common/services/rds';
 import { Implementation } from '../implementation';
 
-export class TestImplementation implements Implementation {
+export class BuildAiDecklists implements Implementation {
 	public async loadReviewIds(): Promise<readonly string[]> {
 		const mysql = await getConnection();
+		// Innkeeper normal
 		const dbResults: any[] = await mysql.query(
 			`
-			SELECT reviewId 
-			FROM replay_summary 
+			SELECT reviewId
+			FROM replay_summary
 			WHERE scenarioId in (252, 256, 259, 263, 261, 258, 257, 262, 253)
 		`,
 		);
@@ -33,70 +34,101 @@ export class TestImplementation implements Implementation {
 			console.warn('invalid scenario id', replay.scenarioId);
 			return null;
 		}
-		// console.log('extracting metric');
-		const opponentHeroEntityId = parseInt(
-			replay.replay
-				.findall(`.//Player`)
-				.find(player => parseInt(player.get('playerID')) === replay.opponentPlayerId)
-				.find(`Tag[@tag='${GameTag.HERO_ENTITY}']`)
-				.get('value'),
-		);
-		// console.log('opponentHeroEntityId', opponentHeroEntityId);
-		const opponentCardId = replay.replay.find(`.//FullEntity[@id='${opponentHeroEntityId}']`).get('cardID');
-		// console.log('opponentCardId', opponentCardId);
-		const fullEntities = this.buildFullEntities(
-			[...replay.replay.findall(`.//FulllEntity`)],
-			replay.opponentPlayerId,
-		);
-		const showEntities = this.buildFullEntities(
-			[...replay.replay.findall(`.//ShowEntity`)],
-			replay.opponentPlayerId,
-		);
-		const allEntities = [];
-		for (const showEntity of [...fullEntities, ...showEntities]) {
-			// Don't add duplicate entities
-			if (allEntities.map(entity => this.getId(entity)).indexOf(this.getId(showEntity)) === -1) {
-				allEntities.push(showEntity);
-			}
-		}
-		// console.log('entityElements', allEntities.length);
-		const cardIdsInStartingDeck = allEntities.map(entity => entity.get('cardID'));
-		// console.log('list of cards starting in opponents deck', cardIdsInStartingDeck);
-		const grouped = cardIdsInStartingDeck.reduce((acc, val) => {
-			acc[val] = (acc[val] || 0) + 1;
-			if (acc[val] > 2) {
-				console.warn('Suspicious deck', miniReview, acc, val);
-			}
-			return acc;
-		}, {});
-		// console.log('grouped', grouped);
-		const output = [
-			{
-				opponentCardId: opponentCardId,
-				scenarioId: replay.scenarioId,
-				cards: grouped,
-				numberOfGames: 1,
-			} as Output,
-		];
-		// console.log('output', output);
-		return output;
-	}
 
-	public buildFullEntities(elements: Element[], playerId: number): Element[] {
-		return (
-			elements
-				// We're only interested in known cards
-				.filter(entity => entity.get('cardID'))
-				// Cards controlled by the opponent
-				.filter(entity => parseInt(entity.find(`.Tag[@tag='${GameTag.CONTROLLER}']`).get('value')) === playerId)
-				// Cards that started in the deck
+		try {
+			const opponentHeroEntityId = parseInt(
+				replay.replay
+					.findall(`.//Player`)
+					.find(player => parseInt(player.get('playerID')) === replay.opponentPlayerId)
+					.find(`Tag[@tag='${GameTag.HERO_ENTITY}']`)
+					.get('value'),
+			);
+			const opponentCardId = replay.replay.find(`.//FullEntity[@id='${opponentHeroEntityId}']`).get('cardID');
+
+			// All entities that are present in the deck at the start of the game
+			// are created using a FullEntity at game start
+			const idControllerMapping = {};
+			for (const entity of replay.replay.findall('.//FullEntity')) {
+				// Only consider cards that start in the deck
+				if (parseInt(entity.find(`.Tag[@tag='${GameTag.ZONE}']`).get('value')) !== Zone.DECK) {
+					continue;
+				}
+				const controllerId = parseInt(entity.find(`.Tag[@tag='${GameTag.CONTROLLER}']`).get('value'));
+				if (idControllerMapping[this.getId(entity)]) {
+					continue;
+				}
+				idControllerMapping[this.getId(entity)] = controllerId;
+			}
+
+			const entitiesWithCards = replay.replay
+				.findall(`.//*[@cardID]`)
 				.filter(
 					entity =>
 						!entity.find(`.Tag[@tag='${GameTag.CREATOR}']`) &&
 						!entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`),
-				)
-		);
+				);
+			// Because cards can change controllers during the game, we need to only consider the
+			// first time we see them
+			const uniqueEntities = [];
+			for (const entity of entitiesWithCards) {
+				// Don't add duplicate entities
+				if (uniqueEntities.map(entity => this.getId(entity)).indexOf(this.getId(entity)) !== -1) {
+					continue;
+				}
+				// Only add cards
+				uniqueEntities.push(entity);
+			}
+
+			const opponentEntities = uniqueEntities.filter(
+				entity =>
+					idControllerMapping[this.getId(entity)] &&
+					idControllerMapping[this.getId(entity)] === replay.opponentPlayerId,
+			);
+			// console.log('entityElements', allEntities.length);
+			const cardIdsInStartingDeck = opponentEntities.map(entity => entity.get('cardID'));
+			// console.log('list of cards starting in opponents deck', cardIdsInStartingDeck);
+			const grouped = cardIdsInStartingDeck.reduce((acc, val) => {
+				acc[val] = (acc[val] || 0) + 1;
+				if (acc[val] > 2) {
+					console.warn('Suspicious deck', miniReview, acc, val);
+				}
+				if (['AT_018', 'HERO_04', 'EX1_043', 'EX1_016', 'LOE_077', 'BRM_028'].indexOf(val) !== -1) {
+					console.warn('Suspicious deck', miniReview, acc, val);
+				}
+				return acc;
+			}, {});
+			// console.log('grouped', grouped);
+			const output = [
+				{
+					opponentCardId: opponentCardId,
+					scenarioId: replay.scenarioId,
+					cards: grouped,
+					numberOfGames: 1,
+				} as Output,
+			];
+			// console.log('output', output);
+			return output;
+		} catch (e) {
+			console.error('error while parsing', e, miniReview);
+			return null;
+		}
 	}
+
+	// public buildFullEntities(elements: Element[], playerId: number): Element[] {
+	// 	return (
+	// 		elements
+	// 			// We're only interested in known cards
+	// 			.filter(entity => entity.get('cardID'))
+	// 			// Cards controlled by the opponent
+	// 			.filter(entity => parseInt(entity.find(`.Tag[@tag='${GameTag.CONTROLLER}']`).get('value')) === playerId)
+	// 			// Cards that started in the deck
+	// 			.filter(
+	// 				entity =>
+	// 					!entity.find(`.Tag[@tag='${GameTag.CREATOR}']`) &&
+	// 					!entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`),
+	// 			)
+	// 	);
+	// }
 
 	public async mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput> {
 		if (!currentResult) {

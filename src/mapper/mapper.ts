@@ -66,6 +66,9 @@ export default async (event): Promise<any> => {
 const processMapEvent = async (reviewId: string) => {
 	// console.log('procesing review id', reviewId);
 	const miniReview: MiniReview = await reviewDao.getMiniReview(reviewId);
+	if (!miniReview) {
+		return null;
+	}
 	// console.log('loaded mini review', miniReview.key, miniReview['key'], miniReview);
 	const replayString = await s3.readContentAsString('com.zerotoheroes.output', miniReview.key);
 	// console.log('Loaded replay as a string. First characters are ' + replayString.substring(0, 100));

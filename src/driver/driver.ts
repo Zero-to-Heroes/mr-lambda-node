@@ -2,7 +2,6 @@
 import { implementation } from '../implementation/implementation';
 import { MapEvent } from '../mr-lambda-common/models/map-event';
 import { TriggerWatcherEvent } from '../mr-lambda-common/models/trigger-watcher-event';
-import { getMrConnection } from '../mr-lambda-common/services/rds-mr';
 import { Sqs } from '../mr-lambda-common/services/sqs';
 import { partitionArray } from '../mr-lambda-common/services/utils';
 
@@ -22,10 +21,6 @@ export default async (event): Promise<any> => {
 	console.log('starting map/reduce on lambda', jobName);
 	const reviewIds: readonly string[] = await implementation.loadReviewIds();
 	console.log('will handle', reviewIds.length, 'reviews');
-	const mysql = await getMrConnection();
-	console.log('got connection to MR DB');
-	const test = await mysql.query(`SELECT * FROM mr_log`);
-	console.log('managed query on MR db', test);
 	await startMappingPhase(reviewIds, jobBucketName);
 	console.log('mapping phase trigger sent');
 	await sqs.sendMessageToQueue(

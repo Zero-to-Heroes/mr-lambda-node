@@ -37,5 +37,6 @@ export default async (event): Promise<any> => {
 };
 
 const countOutputFiles = async (event: TriggerWatcherEvent): Promise<number> => {
+	console.log('trying to get db log', event.jobRootFolder, event.folder);
 	return await db.countFilesCompleted(event.jobRootFolder, event.folder);
 };
