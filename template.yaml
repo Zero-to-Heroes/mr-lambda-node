@@ -63,8 +63,7 @@ Resources:
         Properties:
             Handler: driver/driver.default
             Runtime: nodejs10.x
-            Timeout: 360
-            Tracing: Active
+            Timeout: 880
             CodeUri: dist/driver/driver
             MemorySize: 512
             Policies:
@@ -79,7 +78,6 @@ Resources:
         Properties:
             Handler: mapper-watcher/mapper-watcher.default
             Runtime: nodejs10.x
-            Tracing: Active
             CodeUri: dist/mapper-watcher/mapper-watcher
             MemorySize: 512
             Policies:
@@ -101,7 +99,6 @@ Resources:
         Properties:
             Handler: reducer-watcher/reducer-watcher.default
             Runtime: nodejs10.x
-            Tracing: Active
             CodeUri: dist/reducer-watcher/reducer-watcher
             MemorySize: 512
             Policies:
@@ -124,7 +121,7 @@ Resources:
             Handler: aggregator-watcher/aggregator-watcher.default
             Runtime: nodejs10.x
             CodeUri: dist/aggregator-watcher/aggregator-watcher
-            MemorySize: 512
+            MemorySize: 258
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -146,7 +143,8 @@ Resources:
             Handler: mapper/mapper.default
             Runtime: nodejs10.x
             CodeUri: dist/mapper/mapper
-            MemorySize: 512
+            MemorySize: 1024
+            ReservedConcurrentExecutions: 150
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -168,7 +166,8 @@ Resources:
             Handler: reducer/reducer.default
             Runtime: nodejs10.x
             CodeUri: dist/reducer/reducer
-            MemorySize: 512
+            MemorySize: 1024
+            ReservedConcurrentExecutions: 150
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -190,7 +189,7 @@ Resources:
             Handler: reducer/reducer.default
             Runtime: nodejs10.x
             CodeUri: dist/reducer/reducer
-            MemorySize: 512
+            MemorySize: 1024
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite

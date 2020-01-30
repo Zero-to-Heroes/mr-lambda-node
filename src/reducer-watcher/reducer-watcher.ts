@@ -44,7 +44,7 @@ export default async (event): Promise<any> => {
 		// We start a new process before this one times out, and the new process will resume
 		// where we left, since if will always use the number of files as stored in db
 		if (Date.now() - start > TIMEOUT_LIMIT && Date.now() - start < MAX_ALLOWED_EXECUTION_TIME) {
-			console.log('Sending new message to queue to continue the process');
+			console.log('approaching time out, restarting function');
 			await sqs.sendMessageToQueue(triggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
 			return;
 		}

@@ -20,15 +20,15 @@ export default async (event): Promise<any> => {
 	const mapEvents: readonly MapEvent[] = (event.Records as any[])
 		.map(event => JSON.parse(event.body))
 		.reduce((a, b) => a.concat(b), []);
-	console.log('handling map events', mapEvents.length);
+	// console.log('handling map events', mapEvents.length);
 	// let currentMapEvent = 0;
 	for (const mapEvent of mapEvents) {
 		// currentMapEvent++;
-		console.log('processing map event', mapEvent.reviewIds && mapEvent.reviewIds.length);
+		// console.log('processing map event', mapEvent.reviewIds && mapEvent.reviewIds.length);
 		let currentReviewId = 0;
 		for (const reviewId of mapEvent.reviewIds) {
 			currentReviewId++;
-			console.log('handling', currentReviewId, reviewId);
+			// console.log('handling', currentReviewId, reviewId);
 			const fileName = 'mapper-' + reviewId;
 			if (await db.hasEntry(mapEvent.jobRootFolder, mapEvent.folder, reviewId)) {
 				console.warn('Multiple processing ' + mapEvent.jobRootFolder + '/' + mapEvent.folder + '/' + reviewId);
@@ -36,7 +36,7 @@ export default async (event): Promise<any> => {
 			}
 
 			try {
-				console.log('logging entry', mapEvent.jobRootFolder, mapEvent.folder, fileName, reviewId, 'STARTED');
+				// console.log('logging entry', mapEvent.jobRootFolder, mapEvent.folder, fileName, reviewId, 'STARTED');
 				await db.logEntry(mapEvent.jobRootFolder, mapEvent.folder, fileName, reviewId, 'STARTED');
 			} catch (e) {
 				console.warn(

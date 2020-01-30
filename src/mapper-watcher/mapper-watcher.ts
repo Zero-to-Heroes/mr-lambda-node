@@ -14,6 +14,7 @@ const REDUCER_FOLDER = 'reducer';
 // Totally arbitrary, could be anything
 const MAPPING_PER_REDUCER = 50;
 const MAX_REDUCERS = 75;
+const MAX_MAPPINGS_PER_REDUCER = 1000;
 
 const sqs = new Sqs();
 const db = new Db();
@@ -48,6 +49,7 @@ export default async (event): Promise<any> => {
 		// We start a new process before this one times out, and the new process will resume
 		// where we left, since if will always use the number of files as stored in db
 		if (Date.now() - start > TIMEOUT_LIMIT && Date.now() - start < MAX_ALLOWED_EXECUTION_TIME) {
+			console.log('approaching time out, restarting function');
 			await sqs.sendMessageToQueue(triggerEvent, process.env.SQS_MAPPER_WATCHER_URL);
 			return;
 		}
@@ -66,6 +68,7 @@ export default async (event): Promise<any> => {
 	};
 	console.log("Job's done! Passing the baton ", newTriggerEvent);
 	await sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
+	console.log('sent message to start reducers');
 	return { statusCode: 200, body: '' };
 };
 
@@ -73,9 +76,17 @@ const startReducerPhase = async (
 	mapperOutputFileKeys: readonly string[],
 	jobRootFolder: string,
 ): Promise<readonly ReduceEvent[]> => {
-	const reviewsPerReducer = Math.ceil(Math.max(MAPPING_PER_REDUCER, mapperOutputFileKeys.length / MAX_REDUCERS));
+	const reviewsPerReducer = Math.min(
+		MAX_MAPPINGS_PER_REDUCER,
+		Math.ceil(Math.max(MAPPING_PER_REDUCER, mapperOutputFileKeys.length / MAX_REDUCERS)),
+	);
 	const fileKeysPerMapper: readonly string[][] = partitionArray(mapperOutputFileKeys, reviewsPerReducer);
-	console.log('grouping file keys per mapper', mapperOutputFileKeys.length);
+	console.log(
+		'grouping file keys per mapper',
+		mapperOutputFileKeys.length,
+		fileKeysPerMapper.length,
+		fileKeysPerMapper[0].length,
+	);
 	const reduceEvents: readonly ReduceEvent[] = fileKeysPerMapper.map(files => buildReduceEvent(files, jobRootFolder));
 	console.log('Built SQS reducer events to send: ' + reduceEvents.length);
 	// console.log('First event: ' + reduceEvents[0]);

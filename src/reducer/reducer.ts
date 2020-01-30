@@ -19,9 +19,7 @@ export default async (event): Promise<any> => {
 		.reduce((a, b) => a.concat(b), []);
 	// console.log('handling', reduceEvents.length, 'reduce events');
 
-	let currentReduceEvent = 0;
 	for (const reduceEvent of reduceEvents) {
-		currentReduceEvent++;
 		// console.log('Processing reduce event ' + currentReduceEvent + '/' + reduceEvents.length);
 		const bucket = reduceEvent.bucket;
 		const jobRoot = reduceEvent.jobRootFolder;
@@ -41,7 +39,7 @@ export default async (event): Promise<any> => {
 		const output: ReduceOutput = await processReduceEvent(reduceEvent);
 		const finalOutput: ReduceOutput = folder === 'result' ? await implementation.transformOutput(output) : output;
 		const fileKey: string = jobRoot + '/' + folder + '/' + fileName;
-		// console.log('Writing file ', fileKey, ' with contents ', finalOutput, ' to bucket ', bucket);
+		console.log('Writing file ', fileKey, ' with contents ', finalOutput, ' to bucket ', bucket);
 		await s3.writeFile(finalOutput, bucket, fileKey);
 		await db.updateEntry(jobRoot, folder, fileName, eventId, 'WRITTEN_TO_S3');
 	}

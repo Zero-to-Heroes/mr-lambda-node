@@ -8,6 +8,7 @@ import { partitionArray } from '../mr-lambda-common/services/utils';
 const MAPPER_FOLDER = 'mapper';
 const REVIEWS_PER_MAPPER = 25;
 const MAX_MAPPERS = 150;
+const MAX_REVIEWS_PER_MAPPER = 500;
 
 const sqs = new Sqs();
 
@@ -32,12 +33,16 @@ export default async (event): Promise<any> => {
 		} as TriggerWatcherEvent,
 		process.env.SQS_MAPPER_WATCHER_URL,
 	);
+	console.log('sent notification to start reducer watcher');
 	return { statusCode: 200, body: '' };
 };
 
 const startMappingPhase = async (reviewIds: readonly string[], jobBucketName: string) => {
 	console.log('about to handle', reviewIds.length, 'files');
-	const reviewsPerMapper = Math.ceil(Math.max(REVIEWS_PER_MAPPER, reviewIds.length / MAX_MAPPERS));
+	const reviewsPerMapper = Math.min(
+		MAX_REVIEWS_PER_MAPPER,
+		Math.ceil(Math.max(REVIEWS_PER_MAPPER, reviewIds.length / MAX_MAPPERS)),
+	);
 	console.log('reviewsPerMapper', reviewsPerMapper);
 	const idsPerMapper: readonly string[][] = partitionArray(reviewIds, reviewsPerMapper);
 	console.log('idsPerMapper', idsPerMapper.length);
