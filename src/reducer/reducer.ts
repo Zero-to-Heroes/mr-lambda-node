@@ -40,8 +40,8 @@ export default async (event): Promise<any> => {
 		const finalOutput: ReduceOutput = folder === 'result' ? await implementation.transformOutput(output) : output;
 		const fileKey: string = jobRoot + '/' + folder + '/' + fileName;
 		console.log('Writing file ', fileKey, ' with contents ', finalOutput, ' to bucket ', bucket);
-		await s3.writeFile(finalOutput, bucket, fileKey);
-		await db.updateEntry(jobRoot, folder, fileName, eventId, 'WRITTEN_TO_S3');
+		const result = await s3.writeFile(finalOutput, bucket, fileKey);
+		await db.updateEntry(jobRoot, folder, fileName, eventId, result ? 'WRITTEN_TO_S3' : 'ERROR_IN_S3');
 	}
 	return { statusCode: 200, body: '' };
 };

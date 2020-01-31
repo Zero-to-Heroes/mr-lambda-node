@@ -56,8 +56,14 @@ export default async (event): Promise<any> => {
 				' with contents ' + mapOutput,
 				' to bucket ' + mapEvent.bucket,
 			);
-			await s3.writeFile(mapOutput, mapEvent.bucket, fileKey);
-			await db.updateEntry(mapEvent.jobRootFolder, mapEvent.folder, fileName, reviewId, 'WRITTEN_TO_S3');
+			const result = await s3.writeFile(mapOutput, mapEvent.bucket, fileKey);
+			await db.updateEntry(
+				mapEvent.jobRootFolder,
+				mapEvent.folder,
+				fileName,
+				reviewId,
+				result ? 'WRITTEN_TO_S3' : 'ERROR_IN_S3',
+			);
 		}
 	}
 	return { statusCode: 200, body: '' };

@@ -7,25 +7,38 @@ export class S3 {
 		this.s3 = new S3AWS({ region: 'us-west-2' });
 	}
 
+	// Since S3 is only eventually consistent, it's possible that we try to read a file that is not
+	// available yet
 	public async readContentAsString(bucketName: string, key: string): Promise<string> {
 		return new Promise<string>(resolve => {
-			const input = { Bucket: bucketName, Key: key };
-			// console.log('getting s3 object', input);
-			this.s3.getObject(input, (err, data) => {
-				if (err) {
-					console.error('could not read s3 object', bucketName, key, err);
-					resolve(null);
-					return;
-				}
-				const objectContent = data.Body.toString('utf8');
-				// console.log('read object content', bucketName, key);
-				resolve(objectContent);
-			});
+			this.readContentInternal(bucketName, key, result => resolve(result));
 		});
 	}
 
-	public async writeFile(content: any, bucket: string, fileName: string): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
+	private readContentInternal(bucketName: string, key: string, callback, retriesLeft = 10) {
+		if (retriesLeft <= 0) {
+			console.error('could not read s3 object', bucketName, key);
+			callback(null);
+			return;
+		}
+		const input = { Bucket: bucketName, Key: key };
+		// console.log('getting s3 object', input);
+		this.s3.getObject(input, (err, data) => {
+			if (err) {
+				console.error('could not read s3 object', bucketName, key, err, retriesLeft);
+				setTimeout(() => {
+					this.readContentInternal(bucketName, key, callback, retriesLeft - 1);
+				}, 3000);
+				return;
+			}
+			const objectContent = data.Body.toString('utf8');
+			// console.log('read object content', bucketName, key);
+			callback(objectContent);
+		});
+	}
+
+	public async writeFile(content: any, bucket: string, fileName: string): Promise<boolean> {
+		return new Promise<boolean>((resolve, reject) => {
 			const input = {
 				Body: JSON.stringify(content),
 				Bucket: bucket,
@@ -36,10 +49,10 @@ export class S3 {
 			this.s3.upload(input, (err, data) => {
 				if (err) {
 					console.error('could not upload file to S3', input, err);
-					resolve();
+					resolve(false);
 					return;
 				}
-				resolve();
+				resolve(true);
 			});
 		});
 	}

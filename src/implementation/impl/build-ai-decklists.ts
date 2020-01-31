@@ -69,12 +69,21 @@ export class BuildAiDecklists implements Implementation {
 		// `,
 		// );
 		// Tombs of Terror normal
+		// const dbResults: any[] = await mysql.query(
+		// 	`
+		// 	SELECT reviewId
+		// 	FROM replay_summary
+		// 	WHERE scenarioId in (3428, 3429, 3430, 3431, 3432)
+		// 	AND creationDate > '2019-10-01'
+		// `,
+		// );
+		// Tombs of Terror heroic
 		const dbResults: any[] = await mysql.query(
 			`
 			SELECT reviewId
 			FROM replay_summary
-			WHERE scenarioId in (3428, 3429, 3430, 3431, 3432)
-			AND creationDate > '2019-11-10'
+			WHERE scenarioId in (3433, 3434, 3435, 3436, 3437)
+			AND creationDate > '2019-10-01'
 		`,
 		);
 		const result = dbResults.map(result => result.reviewId);
@@ -355,6 +364,16 @@ export class BuildAiDecklists implements Implementation {
 			totalCardsSeen[cardId] = (secondSeen[cardId] || 0) + (firstSeen[cardId] || 0);
 			// console.log('resulting 2', result[cardId]);
 		}
+		// Now remove the cards that appear too few
+		const maxAppearances = Math.max(...Object.values(totalCardsSeen));
+		const thresholdAppearances = maxAppearances / 100;
+		const unwantedCardIds = Object.keys(totalCardsSeen).filter(
+			cardId => totalCardsSeen[cardId] < thresholdAppearances,
+		);
+		for (const id of unwantedCardIds) {
+			delete cards[id];
+			delete totalCardsSeen[id];
+		}
 		// console.log('result', [cards, totalCardsSeen]);
 		return [cards, totalCardsSeen];
 	}
@@ -362,36 +381,60 @@ export class BuildAiDecklists implements Implementation {
 	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
 		const cards = new AllCardsService();
 		await cards.initializeCardsDb();
-		console.log('transforming output', output);
+		console.log(
+			'transforming output',
+			output.output.length,
+			output.output.map(out => out.numberOfGames).reduce((a, b) => a + b, 0),
+		);
+		const result = this.transform(output.output, cards);
+		console.log(
+			'transformed',
+			result.length,
+			result.map(out => out.numberOfGames).reduce((a, b) => a + b, 0),
+		);
 		return {
-			output: this.transform(output.output, cards),
+			metadata: {
+				numberOfDecks: result.length,
+				numberOfGames: result.map(out => out.numberOfGames).reduce((a, b) => a + b, 0),
+			},
+			output: result,
 		} as ReduceOutput;
 	}
 
 	private transform(output: Output[], cards: AllCardsService): FinalOutput[] {
 		return output
+			.filter(output => output.numberOfGames > 10)
 			.map(output => this.transformSingleOutput(output, cards))
 			.sort((a, b) => b.numberOfGames - a.numberOfGames);
 	}
 
 	private transformSingleOutput(output: Output, cardsService: AllCardsService): FinalOutput {
 		const heroCard = cardsService.getCard(output.opponentCardId);
-		const comment = `Innkeeper ${heroCard.name} deck (Normal) (${output.numberOfGames} games)`;
+		const comment = `Tombs of Terror ${heroCard.name} deck (Normal) (${output.numberOfGames} games)`;
 		// const [totalCardsInDeck, deckstring, cardNames] = this.transformCards(cardsService, heroCard, output.cards);
 		const decks = {};
 		const deckTotalCardsInDeck = {};
 		const deckCardNames = {};
+		const deckCards = {};
+		const deckTotalCardsSeen = {};
 		for (const deckId of Object.keys(output.deckCards)) {
 			const [totalCardsInDeck, deckstring, cardNames] = this.transformCards(
 				cardsService,
 				heroCard,
 				output.deckCards[deckId],
 			);
+			// Arbitrary number below which we consider a deck as invalid
+			// To the best of my knowledge, no AI deck today has less than 7 cards (or even 10 for that matter)
+			if (totalCardsInDeck < 7) {
+				continue;
+			}
 			decks[deckId] = deckstring;
 			deckTotalCardsInDeck[deckId] = totalCardsInDeck;
 			deckCardNames[deckId] = cardNames;
+			deckCards[deckId] = output.deckCards[deckId];
+			deckTotalCardsSeen[deckId] = output.deckTotalCardsSeen[deckId];
 		}
-		const deckIds: readonly number[] = Object.keys(output.deckCards).map(deckId => parseInt(deckId));
+		const deckIds: readonly number[] = Object.keys(decks).map(deckId => parseInt(deckId));
 		const mainDeckId = Math.min(...deckIds);
 		const deckstring = decks[mainDeckId];
 		const totalCardsInDeck = deckTotalCardsInDeck[mainDeckId];
@@ -401,6 +444,7 @@ export class BuildAiDecklists implements Implementation {
 		console.log('deckIds', deckIds, mainDeckId, initialList);
 		return {
 			comment: comment,
+			numberOfGames: output.numberOfGames,
 			opponentCardId: output.opponentCardId,
 			scenarioIds: output.scenarioIds || [],
 			deckstring: deckstring,
@@ -410,8 +454,8 @@ export class BuildAiDecklists implements Implementation {
 			cardNames: cardNames,
 			decks: decks,
 			deckTotalCardsInDeck: deckTotalCardsInDeck,
-			deckCards: output.deckCards,
-			deckTotalCardsSeen: output.deckTotalCardsSeen,
+			deckCards: deckCards,
+			deckTotalCardsSeen: deckTotalCardsSeen,
 			deckCardNames: deckCardNames,
 		} as FinalOutput;
 	}
