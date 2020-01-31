@@ -61,13 +61,13 @@ export class BuildAiDecklists implements Implementation {
 		// `,
 		// );
 		// Galakrond's Awakening Heroic
-		// const dbResults: any[] = await mysql.query(
-		// 	`
-		// 	SELECT reviewId
-		// 	FROM replay_summary
-		// 	WHERE scenarioId in (3556, 3583, 3584, 3585, 3586, 3587, 3594, 3595, 3596, 3597, 3598, 3599)
-		// `,
-		// );
+		const dbResults: any[] = await mysql.query(
+			`
+			SELECT reviewId
+			FROM replay_summary
+			WHERE scenarioId in (3556, 3583, 3584, 3585, 3586, 3587, 3594, 3595, 3596, 3597, 3598, 3599)
+		`,
+		);
 		// Tombs of Terror normal
 		// const dbResults: any[] = await mysql.query(
 		// 	`
@@ -78,14 +78,14 @@ export class BuildAiDecklists implements Implementation {
 		// `,
 		// );
 		// Tombs of Terror heroic
-		const dbResults: any[] = await mysql.query(
-			`
-			SELECT reviewId
-			FROM replay_summary
-			WHERE scenarioId in (3433, 3434, 3435, 3436, 3437)
-			AND creationDate > '2019-10-01'
-		`,
-		);
+		// const dbResults: any[] = await mysql.query(
+		// 	`
+		// 	SELECT reviewId
+		// 	FROM replay_summary
+		// 	WHERE scenarioId in (3433, 3434, 3435, 3436, 3437)
+		// 	AND creationDate > '2019-10-01'
+		// `,
+		// );
 		const result = dbResults.map(result => result.reviewId);
 		// console.log('loaded DB results', result.length);
 		return result;
@@ -134,18 +134,7 @@ export class BuildAiDecklists implements Implementation {
 				.findall(`.//*[@cardID]`)
 				// Specific case for ToT, as it's the default value for the boss at the start of every game
 				.filter(entity => entity.get('cardID') !== 'ULDA_BOSS_15h')
-				.filter(
-					entity =>
-						entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`) ||
-						((!entity.find(`.Tag[@tag='${GameTag.TOPDECK}']`) ||
-							entity.find(`.Tag[@tag='${GameTag.TOPDECK}']`).get('value') === '0') &&
-							(!entity.find(`.Tag[@tag='${GameTag.CREATOR}']`) ||
-								entity.find(`.Tag[@tag='${GameTag.CREATOR}']`).get('value') === '0') &&
-							(!entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`) ||
-								entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`).get('value') === '0') &&
-							(!entity.find(`.Tag[@tag='${GameTag.TRANSFORMED_FROM_CARD}']`) ||
-								entity.find(`.Tag[@tag='${GameTag.TRANSFORMED_FROM_CARD}']`).get('value') === '0')),
-				)
+				.filter(entity => entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`) || this.isEntityValid(entity))
 				.filter(entity => this.invalidCardsIds.indexOf(entity.get('cardID')) === -1);
 			// console.log(
 			// 	'entitiesWithCards',
@@ -212,18 +201,7 @@ export class BuildAiDecklists implements Implementation {
 						currentDeckIdEntity = this.getId(entity);
 					}
 					currentHeroDeckId = parseInt(entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`).get('value'));
-					if (
-						!(
-							(!entity.find(`.Tag[@tag='${GameTag.TOPDECK}']`) ||
-								entity.find(`.Tag[@tag='${GameTag.TOPDECK}']`).get('value') === '0') &&
-							(!entity.find(`.Tag[@tag='${GameTag.CREATOR}']`) ||
-								entity.find(`.Tag[@tag='${GameTag.CREATOR}']`).get('value') === '0') &&
-							(!entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`) ||
-								entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`).get('value') === '0') &&
-							(!entity.find(`.Tag[@tag='${GameTag.TRANSFORMED_FROM_CARD}']`) ||
-								entity.find(`.Tag[@tag='${GameTag.TRANSFORMED_FROM_CARD}']`).get('value') === '0')
-						)
-					) {
+					if (!this.isEntityValid(entity)) {
 						continue;
 					}
 				}
@@ -279,7 +257,7 @@ export class BuildAiDecklists implements Implementation {
 	}
 
 	private mergeOutputs(firstOutput: readonly Output[], secondOutput: readonly Output[]): readonly Output[] {
-		// console.log('merging outputs', firstOutput, secondOutput);
+		console.log('merging outputs', firstOutput, secondOutput);
 		const result: Output[] = [];
 		for (const firstInfo of firstOutput) {
 			const secondInfo =
@@ -364,16 +342,6 @@ export class BuildAiDecklists implements Implementation {
 			totalCardsSeen[cardId] = (secondSeen[cardId] || 0) + (firstSeen[cardId] || 0);
 			// console.log('resulting 2', result[cardId]);
 		}
-		// Now remove the cards that appear too few
-		const maxAppearances = Math.max(...Object.values(totalCardsSeen));
-		const thresholdAppearances = maxAppearances / 100;
-		const unwantedCardIds = Object.keys(totalCardsSeen).filter(
-			cardId => totalCardsSeen[cardId] < thresholdAppearances,
-		);
-		for (const id of unwantedCardIds) {
-			delete cards[id];
-			delete totalCardsSeen[id];
-		}
 		// console.log('result', [cards, totalCardsSeen]);
 		return [cards, totalCardsSeen];
 	}
@@ -410,7 +378,7 @@ export class BuildAiDecklists implements Implementation {
 
 	private transformSingleOutput(output: Output, cardsService: AllCardsService): FinalOutput {
 		const heroCard = cardsService.getCard(output.opponentCardId);
-		const comment = `Tombs of Terror ${heroCard.name} deck (Normal) (${output.numberOfGames} games)`;
+		const comment = `Galakrond ${heroCard.name} deck (Normal) (${output.numberOfGames} games)`;
 		// const [totalCardsInDeck, deckstring, cardNames] = this.transformCards(cardsService, heroCard, output.cards);
 		const decks = {};
 		const deckTotalCardsInDeck = {};
@@ -418,6 +386,17 @@ export class BuildAiDecklists implements Implementation {
 		const deckCards = {};
 		const deckTotalCardsSeen = {};
 		for (const deckId of Object.keys(output.deckCards)) {
+			// Remove the very weird stuff like cards being stolen by the AI
+			// const maxAppearances = Math.max(...Object.values(output.deckTotalCardsSeen[deckId]));
+			const thresholdAppearances = 10; //maxAppearances / 200;
+			const unwantedCardIds = Object.keys(output.deckTotalCardsSeen[deckId]).filter(
+				cardId => output.deckTotalCardsSeen[deckId][cardId] < thresholdAppearances,
+			);
+			for (const id of unwantedCardIds) {
+				delete output.deckCards[deckId][id];
+				delete output.deckTotalCardsSeen[deckId][id];
+			}
+
 			const [totalCardsInDeck, deckstring, cardNames] = this.transformCards(
 				cardsService,
 				heroCard,
@@ -467,7 +446,7 @@ export class BuildAiDecklists implements Implementation {
 	): [number, string, { [cardName: string]: number }] {
 		const cardsForDeckstring = [];
 		const cardNames = {};
-		for (const cardId of Object.keys(cards)) {
+		for (const cardId of Object.keys(cards).sort()) {
 			const dbCard = cardsService.getCard(cardId);
 			cardsForDeckstring.push([dbCard.dbfId, cards[cardId]]);
 			cardNames[dbCard.name] = cards[cardId];
@@ -493,6 +472,21 @@ export class BuildAiDecklists implements Implementation {
 			}
 			return acc;
 		}, {});
+	}
+
+	private isEntityValid(entity: Element): boolean {
+		return (
+			(!entity.find(`.Tag[@tag='${GameTag.TOPDECK}']`) ||
+				entity.find(`.Tag[@tag='${GameTag.TOPDECK}']`).get('value') === '0') &&
+			(!entity.find(`.Tag[@tag='${GameTag.REVEALED}']`) ||
+				entity.find(`.Tag[@tag='${GameTag.REVEALED}']`).get('value') === '0') &&
+			(!entity.find(`.Tag[@tag='${GameTag.CREATOR}']`) ||
+				entity.find(`.Tag[@tag='${GameTag.CREATOR}']`).get('value') === '0') &&
+			(!entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`) ||
+				entity.find(`.Tag[@tag='${GameTag.CREATOR_DBID}']`).get('value') === '0') &&
+			(!entity.find(`.Tag[@tag='${GameTag.TRANSFORMED_FROM_CARD}']`) ||
+				entity.find(`.Tag[@tag='${GameTag.TRANSFORMED_FROM_CARD}']`).get('value') === '0')
+		);
 	}
 }
 

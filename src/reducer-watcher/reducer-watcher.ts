@@ -25,10 +25,11 @@ export default async (event): Promise<any> => {
 	const numberOfReducers = triggerEvent.expectedNumberOfFiles;
 	let numberOfFiles = 0;
 	let previousCompletion = 0;
+	let retriesLeft = 50;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < numberOfReducers) {
 		console.log('Reducing completion progress', numberOfFiles + '/' + numberOfReducers);
 		await sleep(2000);
-		if (previousCompletion === -1) {
+		if (retriesLeft < 0) {
 			console.warn('Things are stuck, moving forward', numberOfFiles);
 			// We go on. Usually we don't really mind if things are stuck, it just reduces the sample size
 			break;
@@ -36,9 +37,10 @@ export default async (event): Promise<any> => {
 		if (previousCompletion === numberOfFiles) {
 			// No update in the last step, usually that's a sign things are stuck
 			console.warn('No update since last tick', numberOfFiles);
-			previousCompletion = -1;
+			retriesLeft--;
 		} else {
 			previousCompletion = numberOfFiles;
+			retriesLeft = 50;
 		}
 
 		// We start a new process before this one times out, and the new process will resume

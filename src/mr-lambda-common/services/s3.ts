@@ -25,7 +25,7 @@ export class S3 {
 		// console.log('getting s3 object', input);
 		this.s3.getObject(input, (err, data) => {
 			if (err) {
-				console.error('could not read s3 object', bucketName, key, err, retriesLeft);
+				console.warn('could not read s3 object', bucketName, key, err, retriesLeft);
 				setTimeout(() => {
 					this.readContentInternal(bucketName, key, callback, retriesLeft - 1);
 				}, 3000);

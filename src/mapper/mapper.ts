@@ -52,9 +52,12 @@ export default async (event): Promise<any> => {
 			} as MapOutput;
 			console.log(
 				'Writing file ' + currentReviewId + '/' + mapEvent.reviewIds.length,
-				' with ' + fileKey,
-				' with contents ' + mapOutput,
-				' to bucket ' + mapEvent.bucket,
+				' with ',
+				fileKey,
+				' with contents ',
+				mapOutput,
+				' to bucket ',
+				mapEvent.bucket,
 			);
 			const result = await s3.writeFile(mapOutput, mapEvent.bucket, fileKey);
 			await db.updateEntry(
