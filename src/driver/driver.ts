@@ -18,9 +18,10 @@ const sqs = new Sqs();
 export default async (event): Promise<any> => {
 	// console.log('event', event);
 	const jobName: string = event.jobName;
+	const query: string = event.query;
 	const jobBucketName = jobName + '-' + Date.now();
 	console.log('starting map/reduce on lambda', jobName);
-	const reviewIds: readonly string[] = await implementation.loadReviewIds();
+	const reviewIds: readonly string[] = await implementation.loadReviewIds(query);
 	console.log('will handle', reviewIds.length, 'reviews');
 	await startMappingPhase(reviewIds, jobBucketName);
 	console.log('mapping phase trigger sent');
