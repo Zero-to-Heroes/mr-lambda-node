@@ -11,30 +11,47 @@ import { ReferenceCard } from '../../mr-lambda-common/services/reference-card';
 import { Implementation } from '../implementation';
 
 export class BuildAiDecklists implements Implementation {
-	private invalidCardsIds = [
+	private mappedCardIds = [
 		// The upgraded version of spellstones should never start in deck
-		'LOOT_103t1',
-		'LOOT_103t2',
-		'LOOT_043t2',
-		'LOOT_043t3',
-		'LOOT_051t1',
-		'LOOT_051t2',
-		'LOOT_064t1',
-		'LOOT_064t2',
-		'LOOT_080t2',
-		'LOOT_080t3',
-		'LOOT_091t1',
-		'LOOT_091t2',
-		'LOOT_203t2',
-		'LOOT_203t3',
-		'LOOT_503t',
-		'LOOT_503t2',
-		'LOOT_507t',
-		'LOOT_507t2',
-		'FB_Champs_LOOT_080t2',
-		'FB_Champs_LOOT_080t3',
+		['LOOT_103t1', 'LOOT_103'],
+		['LOOT_103t2', 'LOOT_103'],
+		['LOOT_043t2', 'LOOT_043'],
+		['LOOT_043t3', 'LOOT_043'],
+		['LOOT_051t1', 'LOOT_051'],
+		['LOOT_051t2', 'LOOT_051'],
+		['LOOT_064t1', 'LOOT_064'],
+		['LOOT_064t2', 'LOOT_064'],
+		['LOOT_080t2', 'LOOT_080'],
+		['LOOT_080t3', 'LOOT_080'],
+		['LOOT_091t1', 'LOOT_091'],
+		['LOOT_091t2', 'LOOT_091'],
+		['LOOT_203t2', 'LOOT_203'],
+		['LOOT_203t3', 'LOOT_203'],
+		['LOOT_503t', 'LOOT_503'],
+		['LOOT_503t2', 'LOOT_503'],
+		['LOOT_507t', 'LOOT_507'],
+		['LOOT_507t2', 'LOOT_507'],
+		['FB_Champs_LOOT_080t2', 'FB_Champs_LOOT_080'],
+		['FB_Champs_LOOT_080t3', 'FB_Champs_LOOT_080'],
+		// The "unidentified" spells
+		['LOOT_278t1', 'LOOT_278'],
+		['LOOT_278t2', 'LOOT_278'],
+		['LOOT_278t3', 'LOOT_278'],
+		['LOOT_278t4', 'LOOT_278'],
+		['LOOT_285t', 'LOOT_285'],
+		['LOOT_285t2', 'LOOT_285'],
+		['LOOT_285t3', 'LOOT_285'],
+		['LOOT_285t4', 'LOOT_285'],
+		['LOOT_286t1', 'LOOT_286'],
+		['LOOT_286t2', 'LOOT_286'],
+		['LOOT_286t3', 'LOOT_286'],
+		['LOOT_286t4', 'LOOT_286'],
+		['DAL_366t1', 'DAL_366'],
+		['DAL_366t2', 'DAL_366'],
+		['DAL_366t3', 'DAL_366'],
+		['DAL_366t4', 'DAL_366'],
 	];
-	public async loadReviewIds(): Promise<readonly string[]> {
+	public async loadReviewIds(query: string): Promise<readonly string[]> {
 		const mysql = await getConnection();
 		// Innkeeper normal
 		// const dbResults: any[] = await mysql.query(
@@ -61,13 +78,13 @@ export class BuildAiDecklists implements Implementation {
 		// `,
 		// );
 		// Galakrond's Awakening Heroic
-		const dbResults: any[] = await mysql.query(
-			`
-			SELECT reviewId
-			FROM replay_summary
-			WHERE scenarioId in (3556, 3583, 3584, 3585, 3586, 3587, 3594, 3595, 3596, 3597, 3598, 3599)
-		`,
-		);
+		// const dbResults: any[] = await mysql.query(
+		// 	`
+		// 	SELECT reviewId
+		// 	FROM replay_summary
+		// 	WHERE scenarioId in (3556, 3583, 3584, 3585, 3586, 3587, 3594, 3595, 3596, 3597, 3598, 3599)
+		// `,
+		// );
 		// Tombs of Terror normal
 		// const dbResults: any[] = await mysql.query(
 		// 	`
@@ -86,6 +103,7 @@ export class BuildAiDecklists implements Implementation {
 		// 	AND creationDate > '2019-10-01'
 		// `,
 		// );
+		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
 		// console.log('loaded DB results', result.length);
 		return result;
@@ -134,8 +152,7 @@ export class BuildAiDecklists implements Implementation {
 				.findall(`.//*[@cardID]`)
 				// Specific case for ToT, as it's the default value for the boss at the start of every game
 				.filter(entity => entity.get('cardID') !== 'ULDA_BOSS_15h')
-				.filter(entity => entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`) || this.isEntityValid(entity))
-				.filter(entity => this.invalidCardsIds.indexOf(entity.get('cardID')) === -1);
+				.filter(entity => entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`) || this.isEntityValid(entity));
 			// console.log(
 			// 	'entitiesWithCards',
 			// 	entitiesWithCards.map(entity => this.getId(entity)).length,
@@ -187,16 +204,9 @@ export class BuildAiDecklists implements Implementation {
 					if (currentHeroDeckId !== -1 && currentFormEntities && currentFormEntities.length > 0) {
 						// console.log('assigning deck', currentHeroDeckId, currentFormEntities.length);
 						splitEntities[currentHeroDeckId] = this.group(
-							currentFormEntities.map(entity => entity.get('cardID')),
+							currentFormEntities.map(entity => this.getCardId(entity)),
 							miniReview,
 						);
-						// if (!grouped) {
-						// 	grouped = this.group(
-						// 		currentFormEntities.map(entity => entity.get('cardID')),
-						// 		miniReview,
-						// 	);
-						// 	console.log('assigning grouped', grouped, splitEntities[currentHeroDeckId]);
-						// }
 						currentFormEntities = [];
 						currentDeckIdEntity = this.getId(entity);
 					}
@@ -208,7 +218,7 @@ export class BuildAiDecklists implements Implementation {
 				currentFormEntities.push(entity);
 			}
 			splitEntities[currentHeroDeckId] = this.group(
-				currentFormEntities.map(entity => entity.get('cardID')),
+				currentFormEntities.map(entity => this.getCardId(entity)),
 				miniReview,
 			);
 
@@ -462,6 +472,16 @@ export class BuildAiDecklists implements Implementation {
 
 	private getId(entity: Element): number {
 		return parseInt(entity.get('id') || entity.get('entity'));
+	}
+
+	private getCardId(entity: Element): string {
+		for (const mappedCards of this.mappedCardIds) {
+			const mappedCardId = mappedCards[0];
+			if (mappedCardId === entity.get('cardID')) {
+				return mappedCards[1];
+			}
+		}
+		return entity.get('cardID');
 	}
 
 	private group(collection: string[], miniReview?: MiniReview) {
