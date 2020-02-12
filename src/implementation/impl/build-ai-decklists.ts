@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser';
-import { GameTag, Zone } from '@firestone-hs/reference-data';
+import { CardType, GameTag, Zone } from '@firestone-hs/reference-data';
 import { encode } from 'deckstrings';
 import { Element } from 'elementtree';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
@@ -51,6 +51,7 @@ export class BuildAiDecklists implements Implementation {
 		['DAL_366t3', 'DAL_366'],
 		['DAL_366t4', 'DAL_366'],
 	];
+
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
 		const mysql = await getConnection();
 		// Innkeeper normal
@@ -116,16 +117,8 @@ export class BuildAiDecklists implements Implementation {
 		}
 
 		try {
-			const opponentHeroEntityId = parseInt(
-				replay.replay
-					.findall(`.//Player`)
-					.find(player => parseInt(player.get('playerID')) === replay.opponentPlayerId)
-					.find(`Tag[@tag='${GameTag.HERO_ENTITY}']`)
-					.get('value'),
-			);
-			// console.log('opponentHeroEntityId', opponentHeroEntityId, replay.opponentPlayerId);
-			const opponentCardId = replay.replay.find(`.//FullEntity[@id='${opponentHeroEntityId}']`).get('cardID');
-			// console.log('opponentCardId', opponentCardId);
+			const opponentCardId: string = this.extractOpponentCardId(replay);
+			const [isTransformMarker, deckIdExtractor] = this.buildTransformMarkerFunction(miniReview, replay);
 
 			// All entities that are present in the deck at the start of the game
 			// are created using a FullEntity at game start
@@ -136,7 +129,7 @@ export class BuildAiDecklists implements Implementation {
 					parseInt(entity.find(`.Tag[@tag='${GameTag.ZONE}']`).get('value')) !== Zone.DECK &&
 					// We need the entities that tell us a form change occurs. They will get filtered out from
 					// the decklist later on
-					!entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`)
+					!isTransformMarker(entity)
 				) {
 					continue;
 				}
@@ -146,18 +139,12 @@ export class BuildAiDecklists implements Implementation {
 				}
 				idControllerMapping[this.getId(entity)] = controllerId;
 			}
-			// console.log('idControllerMapping', idControllerMapping[685], Object.keys(idControllerMapping).length);
 
 			const entitiesWithCards = replay.replay
 				.findall(`.//*[@cardID]`)
 				// Specific case for ToT, as it's the default value for the boss at the start of every game
 				.filter(entity => entity.get('cardID') !== 'ULDA_BOSS_15h')
-				.filter(entity => entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`) || this.isEntityValid(entity));
-			// console.log(
-			// 	'entitiesWithCards',
-			// 	entitiesWithCards.map(entity => this.getId(entity)).length,
-			// 	// replay.replay.findall(`.//*[@cardID]`).map(entity => this.getId(entity)),
-			// );
+				.filter(entity => isTransformMarker(entity) || this.isEntityValid(entity));
 			// Because cards can change controllers during the game, we need to only consider the
 			// first time we see them
 			const uniqueEntities = [];
@@ -169,20 +156,16 @@ export class BuildAiDecklists implements Implementation {
 				// Only add cards
 				uniqueEntities.push(entity);
 			}
-			// console.log('uniqueEntities', uniqueEntities.map(entity => this.getId(entity)).length);
 
 			const opponentEntities: Element[] = uniqueEntities.filter(
 				entity =>
 					idControllerMapping[this.getId(entity)] &&
 					idControllerMapping[this.getId(entity)] === replay.opponentPlayerId,
 			);
-			// console.log('opponentEntities', opponentEntities.map(entity => this.getId(entity)).length);
 
 			const splitEntities = {};
 			let currentFormEntities: Element[] = [];
-			// let cardIdsInStartingDeck: string[];
-			// let grouped;
-			let currentHeroDeckId = -1;
+			let currentHeroDeckId = 'default';
 			let currentDeckIdEntity = -1;
 			for (const entity of opponentEntities) {
 				// Cards in hand are kept when changing form, and we don't want them to count
@@ -194,47 +177,26 @@ export class BuildAiDecklists implements Implementation {
 				if (this.getId(entity) < currentDeckIdEntity) {
 					continue;
 				}
-				if (entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`)) {
-					// console.log(
-					// 	'splitting entities',
-					// 	entity.attrib,
-					// 	currentFormEntities.length,
-					// 	currentFormEntities.length > 0 && currentFormEntities[0].attrib,
-					// );
-					if (currentHeroDeckId !== -1 && currentFormEntities && currentFormEntities.length > 0) {
-						// console.log('assigning deck', currentHeroDeckId, currentFormEntities.length);
-						splitEntities[currentHeroDeckId] = this.group(
+				if (isTransformMarker(entity)) {
+					if (currentHeroDeckId !== 'default' && currentFormEntities && currentFormEntities.length > 0) {
+						splitEntities['deckId-' + currentHeroDeckId] = this.group(
 							currentFormEntities.map(entity => this.getCardId(entity)),
 							miniReview,
 						);
 						currentFormEntities = [];
 						currentDeckIdEntity = this.getId(entity);
 					}
-					currentHeroDeckId = parseInt(entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`).get('value'));
+					currentHeroDeckId = deckIdExtractor(entity);
 					if (!this.isEntityValid(entity)) {
 						continue;
 					}
 				}
 				currentFormEntities.push(entity);
 			}
-			splitEntities[currentHeroDeckId] = this.group(
+			splitEntities['deckId-' + currentHeroDeckId] = this.group(
 				currentFormEntities.map(entity => this.getCardId(entity)),
 				miniReview,
 			);
-
-			// If there is no "deck_entity_id" element, this will be the entry defined with -1 as key
-			// const deckIds: readonly number[] = Object.keys(splitEntities).map(deckId => parseInt(deckId));
-			// const initialList = splitEntities[Math.min(...deckIds)];
-			// console.log('initialList', initialList.length, deckIds, Math.min(...deckIds));
-			// console.log('initialList full', initialList);
-			// console.log('splitEntities', splitEntities);
-			// if (initialList['ULD_172'] && initialList['ULD_172'] === 3) {
-			// 	console.log('Invalid decks', miniReview, initialList, replay.opponentPlayerId);
-			// }
-			// if (!Object.keys(initialList) || Object.keys(initialList).length === 0) {
-			// 	console.log('Parsing issue', miniReview, initialList, replay.opponentPlayerId);
-			// }
-			// console.log('grouped', grouped);
 			const output = [
 				{
 					opponentCardId: opponentCardId,
@@ -244,7 +206,7 @@ export class BuildAiDecklists implements Implementation {
 					deckTotalCardsSeen: splitEntities,
 				} as Output,
 			];
-			console.log('output', output);
+			console.log('output', JSON.stringify(output));
 			return output;
 		} catch (e) {
 			console.error('error while parsing', e, miniReview);
@@ -400,7 +362,9 @@ export class BuildAiDecklists implements Implementation {
 			// const maxAppearances = Math.max(...Object.values(output.deckTotalCardsSeen[deckId]));
 			const thresholdAppearances = 10; //maxAppearances / 200;
 			const unwantedCardIds = Object.keys(output.deckTotalCardsSeen[deckId]).filter(
-				cardId => output.deckTotalCardsSeen[deckId][cardId] < thresholdAppearances,
+				cardId =>
+					output.deckTotalCardsSeen[deckId][cardId] < thresholdAppearances ||
+					(cardsService.getCard(cardId).type && cardsService.getCard(cardId).type.toLowerCase() === 'hero'),
 			);
 			for (const id of unwantedCardIds) {
 				delete output.deckCards[deckId][id];
@@ -423,8 +387,10 @@ export class BuildAiDecklists implements Implementation {
 			deckCards[deckId] = output.deckCards[deckId];
 			deckTotalCardsSeen[deckId] = output.deckTotalCardsSeen[deckId];
 		}
-		const deckIds: readonly number[] = Object.keys(decks).map(deckId => parseInt(deckId));
-		const mainDeckId = Math.min(...deckIds);
+		const deckIds: readonly string[] = Object.keys(decks);
+		// When keys are integers, they are sorted in numerical order (which we don't want)
+		// Otherwise they are sorted in chronological order (good!)
+		const mainDeckId = deckIds[0];
 		const deckstring = decks[mainDeckId];
 		const totalCardsInDeck = deckTotalCardsInDeck[mainDeckId];
 		const initialList = output.deckCards[mainDeckId];
@@ -441,12 +407,21 @@ export class BuildAiDecklists implements Implementation {
 			cards: initialList,
 			totalCardsSeen: totalCardsSeen,
 			cardNames: cardNames,
-			decks: decks,
-			deckTotalCardsInDeck: deckTotalCardsInDeck,
-			deckCards: deckCards,
-			deckTotalCardsSeen: deckTotalCardsSeen,
-			deckCardNames: deckCardNames,
+			decks: this.cleanKeys(decks),
+			deckTotalCardsInDeck: this.cleanKeys(deckTotalCardsInDeck),
+			deckCards: this.cleanKeys(deckCards),
+			deckTotalCardsSeen: this.cleanKeys(deckTotalCardsSeen),
+			deckCardNames: this.cleanKeys(deckCardNames),
 		} as FinalOutput;
+	}
+
+	private cleanKeys(input: { [deckId: string]: any }): { [deckId: string]: any } {
+		const result: { [deckId: string]: any } = {};
+		for (const key of Object.keys(input)) {
+			const cleanKey = key.split('deckId-')[1];
+			result[cleanKey] = input[key];
+		}
+		return result;
 	}
 
 	private transformCards(
@@ -468,6 +443,50 @@ export class BuildAiDecklists implements Implementation {
 			format: 1, // Don't care about that
 		});
 		return [totalCardsInDeck, deckstring, cardNames];
+	}
+
+	// From what I've seen (but it's still to be confirmed):
+	// - if the opponent transforms without changing the hero card, a HERO_DECK_ID is emitted
+	// (this is the case for Vesh)
+	// - if the hero card changes, no HERO_DECK_ID is sent, but we can use the Hero card as a marker
+	private buildTransformMarkerFunction(
+		miniReview: MiniReview,
+		replay: Replay,
+	): [(entity: Element) => boolean, (entity: Element) => string] {
+		// For now we hardcode ToT
+		// An option could be to use the hero power, as it is present in both ToT and GA
+		// However it's possible (and likely) that the boss' HP upgrades during a fight
+		// without it having a new decklist, so using the HP would be more brittle
+		if (
+			[3428, 3429, 3430, 3431, 3432, 3438, 3433, 3434, 3435, 3436, 3437, 3439].indexOf(replay.scenarioId) !== -1
+		) {
+			return [
+				(entity: Element) => entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`) != null,
+				(entity: Element) => entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`).get('value'),
+			];
+		}
+		// Default to the "new" mechanism, as for now I don't handle older game mode
+		return [
+			(entity: Element) =>
+				entity.find(`.Tag[@tag='${GameTag.CARDTYPE}']`) != null &&
+				entity.find(`.Tag[@tag='${GameTag.ZONE}']`) != null &&
+				entity.find(`.Tag[@tag='${GameTag.CONTROLLER}']`) != null &&
+				parseInt(entity.find(`.Tag[@tag='${GameTag.CARDTYPE}']`).get('value')) === CardType.HERO &&
+				parseInt(entity.find(`.Tag[@tag='${GameTag.ZONE}']`).get('value')) === Zone.PLAY &&
+				parseInt(entity.find(`.Tag[@tag='${GameTag.CONTROLLER}']`).get('value')) === replay.opponentPlayerId,
+			(entity: Element) => entity.get('cardID'),
+		];
+	}
+
+	private extractOpponentCardId(replay: Replay): string {
+		const opponentHeroEntityId = parseInt(
+			replay.replay
+				.findall(`.//Player`)
+				.find(player => parseInt(player.get('playerID')) === replay.opponentPlayerId)
+				.find(`Tag[@tag='${GameTag.HERO_ENTITY}']`)
+				.get('value'),
+		);
+		return replay.replay.find(`.//FullEntity[@id='${opponentHeroEntityId}']`).get('cardID');
 	}
 
 	private getId(entity: Element): number {
