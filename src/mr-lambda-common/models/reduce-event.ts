@@ -3,5 +3,6 @@ export interface ReduceEvent {
 	readonly outputFolder: string;
 	readonly jobRootFolder: string;
 	readonly eventId: string;
+	readonly implementation: string;
 	readonly fileKeys: readonly string[];
 }

@@ -52,13 +52,18 @@ export default async (event): Promise<any> => {
 		}
 	}
 	console.log('Reducing phase over, starting aggregation phase');
-	await startAggregationPhase(await outputFileKeys(triggerEvent), triggerEvent.jobRootFolder);
+	await startAggregationPhase(
+		await outputFileKeys(triggerEvent),
+		triggerEvent.jobRootFolder,
+		triggerEvent.implementation,
+	);
 	console.log('aggregation phase trigger done');
 	const newTriggerEvent: TriggerWatcherEvent = {
 		bucket: process.env.S3_BUCKET,
 		folder: RESULT_FOLDER,
 		jobRootFolder: triggerEvent.jobRootFolder,
 		expectedNumberOfFiles: 1,
+		implementation: triggerEvent.implementation,
 	};
 	await sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_AGGREGATOR_WATCHER_URL);
 	console.log("Job's done! Passing the baton ", newTriggerEvent);
@@ -68,12 +73,14 @@ export default async (event): Promise<any> => {
 const startAggregationPhase = async (
 	outputFileKeys: readonly string[],
 	jobRootFolder: string,
+	implementation: string,
 ): Promise<ReduceEvent> => {
 	const aggregationEvent = {
 		bucket: process.env.S3_BUCKET,
 		outputFolder: RESULT_FOLDER,
 		jobRootFolder: jobRootFolder,
 		fileKeys: outputFileKeys,
+		implementation: implementation,
 		eventId: uuid(),
 	} as ReduceEvent;
 	console.log('Built SQS aggregation event to send');

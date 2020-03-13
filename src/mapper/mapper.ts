@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { parseHsReplayString, Replay } from '@firestone-hs/hs-replay-xml-parser';
-import { implementation } from '../implementation/implementation';
+import { getImplementation } from '../implementation/implementation';
 import { MapEvent } from '../mr-lambda-common/models/map-event';
 import { MapOutput } from '../mr-lambda-common/models/map-output';
 import { MiniReview } from '../mr-lambda-common/models/mini-review';
@@ -45,7 +45,7 @@ export default async (event): Promise<any> => {
 				);
 				continue;
 			}
-			const currentMetric = await processMapEvent(reviewId);
+			const currentMetric = await processMapEvent(reviewId, mapEvent.implementation);
 			const fileKey = mapEvent.jobRootFolder + '/' + mapEvent.folder + '/' + fileName;
 			const mapOutput: MapOutput = {
 				output: currentMetric,
@@ -72,7 +72,7 @@ export default async (event): Promise<any> => {
 	return { statusCode: 200, body: '' };
 };
 
-const processMapEvent = async (reviewId: string) => {
+const processMapEvent = async (reviewId: string, implementation: string) => {
 	// console.log('procesing review id', reviewId);
 	const miniReview: MiniReview = await reviewDao.getMiniReview(reviewId);
 	if (!miniReview) {
@@ -85,6 +85,6 @@ const processMapEvent = async (reviewId: string) => {
 	if (!replay) {
 		return null;
 	}
-	const output = await implementation.extractMetric(replay, miniReview);
+	const output = await getImplementation(implementation).extractMetric(replay, miniReview, replayString);
 	return output;
 };

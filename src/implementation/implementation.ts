@@ -1,17 +1,27 @@
 import { Replay } from '@firestone-hs/hs-replay-xml-parser';
 import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
-import { BuildAiDecklists } from './impl/build-ai-decklists';
+import { BgsAvgStatsPerTurnPerHero } from './impl/battlegrounds-avg-stats-per-turn-per-hero';
 
 export interface Implementation {
-	transformOutput(output: ReduceOutput): Promise<ReduceOutput>;
-	mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput>;
 	loadReviewIds(query: string): Promise<readonly string[]>;
-	extractMetric(replay: Replay, miniReview: MiniReview): Promise<any>;
+	extractMetric(replay: Replay, miniReview: MiniReview, replayXml: string): Promise<any>;
+	mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput>;
+	transformOutput(output: ReduceOutput): Promise<ReduceOutput>;
 }
 
-const currentImplementation: Implementation = new BuildAiDecklists();
+// const currentImplementation: Implementation = new BgsAvgStatsPerTurnPerFinalPosition();
+// const currentImplementation: Implementation = new BgsAvgStatsPerTurn();
+// const currentImplementation: Implementation = new BgsAvgStatsPerTurnPerHero();
+// const currentImplementation: Implementation = new BuildAiDecklists();
 // const currentImplementation: Implementation = new GalakrondDamageToHero();
 // const currentImplementation: Implementation = new GalakrondMinionsKilled();
 
-export { currentImplementation as implementation };
+export const getImplementation = (implementationId: string): Implementation => {
+	switch (implementationId) {
+		// case 'heroes-tribe-comp':
+		// 	return new BgsHeroesTribe();
+		default:
+			return new BgsAvgStatsPerTurnPerHero();
+	}
+};

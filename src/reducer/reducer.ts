@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { implementation } from '../implementation/implementation';
+import { getImplementation } from '../implementation/implementation';
 import { MapOutput } from '../mr-lambda-common/models/map-output';
 import { ReduceEvent } from '../mr-lambda-common/models/reduce-event';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
@@ -37,7 +37,8 @@ export default async (event): Promise<any> => {
 			continue;
 		}
 		const output: ReduceOutput = await processReduceEvent(reduceEvent);
-		const finalOutput: ReduceOutput = folder === 'result' ? await implementation.transformOutput(output) : output;
+		const finalOutput: ReduceOutput =
+			folder === 'result' ? await getImplementation(reduceEvent.implementation).transformOutput(output) : output;
 		const fileKey: string = jobRoot + '/' + folder + '/' + fileName;
 		console.log('Writing file ', fileKey, ' with contents ', finalOutput, ' to bucket ', bucket);
 		const result = await s3.writeFile(finalOutput, bucket, fileKey);
@@ -54,7 +55,7 @@ const processReduceEvent = async (reduceEvent: ReduceEvent): Promise<ReduceOutpu
 	const reduceOutputs = await Promise.all(fileContents.map(fileContent => toReduceOutput(fileContent)));
 	let reduce: ReduceOutput = {} as ReduceOutput;
 	for (const reduceOutput of reduceOutputs) {
-		reduce = await implementation.mergeReduceEvents(reduce, reduceOutput);
+		reduce = await getImplementation(reduceEvent.implementation).mergeReduceEvents(reduce, reduceOutput);
 	}
 	// console.log('processed event', reduce);
 	return reduce;

@@ -60,6 +60,7 @@ export default async (event): Promise<any> => {
 	const reduceEvents: readonly ReduceEvent[] = await startReducerPhase(
 		await outputFileKeys(triggerEvent),
 		triggerEvent.jobRootFolder,
+		triggerEvent.implementation,
 	);
 	console.log('reducing phase trigger done');
 	const newTriggerEvent: TriggerWatcherEvent = {
@@ -67,6 +68,7 @@ export default async (event): Promise<any> => {
 		folder: REDUCER_FOLDER,
 		jobRootFolder: triggerEvent.jobRootFolder,
 		expectedNumberOfFiles: reduceEvents.length,
+		implementation: triggerEvent.implementation,
 	};
 	console.log("Job's done! Passing the baton ", newTriggerEvent);
 	await sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
@@ -77,6 +79,7 @@ export default async (event): Promise<any> => {
 const startReducerPhase = async (
 	mapperOutputFileKeys: readonly string[],
 	jobRootFolder: string,
+	implementation: string,
 ): Promise<readonly ReduceEvent[]> => {
 	const reviewsPerReducer = Math.min(
 		MAX_MAPPINGS_PER_REDUCER,
@@ -89,7 +92,9 @@ const startReducerPhase = async (
 		fileKeysPerMapper.length,
 		fileKeysPerMapper[0].length,
 	);
-	const reduceEvents: readonly ReduceEvent[] = fileKeysPerMapper.map(files => buildReduceEvent(files, jobRootFolder));
+	const reduceEvents: readonly ReduceEvent[] = fileKeysPerMapper.map(files =>
+		buildReduceEvent(files, jobRootFolder, implementation),
+	);
 	console.log('Built SQS reducer events to send: ' + reduceEvents.length);
 	// console.log('First event: ' + reduceEvents[0]);
 	await sqs.sendMessagesToQueue(reduceEvents, process.env.SQS_REDUCER_URL);
@@ -97,12 +102,17 @@ const startReducerPhase = async (
 	return reduceEvents;
 };
 
-const buildReduceEvent = (mapperOutputFileKeys: readonly string[], jobBucketName: string): ReduceEvent => {
+const buildReduceEvent = (
+	mapperOutputFileKeys: readonly string[],
+	jobBucketName: string,
+	implementation: string,
+): ReduceEvent => {
 	return {
 		bucket: process.env.S3_BUCKET,
 		outputFolder: REDUCER_FOLDER,
 		jobRootFolder: jobBucketName,
 		fileKeys: mapperOutputFileKeys,
+		implementation: implementation,
 		eventId: uuid(),
 	};
 };
