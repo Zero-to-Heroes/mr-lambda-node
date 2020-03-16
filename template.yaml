@@ -73,6 +73,19 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Events:
+                # Nightly build of the stats
+                BgsWarbandStatsTrigger:
+                    Type: Schedule
+                    Properties:
+                        Input: "{ \"jobName\": \"bgs-avg-stats-per-turn-per-hero\", \"query\": \"SELECT reviewId FROM replay_summary WHERE gameMode = 'battlegrounds' AND buildNumber = 42174 AND playerCardId like 'TB_BaconShop_HERO_%'\", \"implementation\": \"bgs-avg-stats-per-turn-per-hero\" }"
+                        Schedule: cron(0 1 * * ? *) # Triggers every day at 1 AM
+                # Build tribes
+                BgsTribesStatTrigger:
+                    Type: Schedule
+                    Properties:
+                        Input: "{ \"jobName\": \"bgs-heroes-tribe\", \"query\": \"SELECT reviewId FROM replay_summary WHERE gameMode = 'battlegrounds' AND buildNumber = 42174 AND playerCardId like 'TB_BaconShop_HERO_%' AND additionalResult in (1, 2, 3, 4)\", \"implementation\": \"bgs-heroes-tribe\" }"
+                        Schedule: cron(0 2 * * ? *) # Triggers every day at 2 AM
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:
@@ -205,3 +218,9 @@ Resources:
                         Queue: !GetAtt SQSAggregatorTriggerQueue.Arn
                         # There should always only be one message
                         BatchSize: 1
+                # Nightly build of the stats
+                LastPeriodTrigger:
+                    Type: Schedule
+                    Properties:
+                        Input: "{ \"test\": \"test\" }"
+                        Schedule: cron(0 1 * * ? *) # Triggers every day at 1 AM

@@ -1,3 +1,4 @@
+import { Map } from 'immutable';
 import fetch, { RequestInfo } from 'node-fetch';
 
 function partitionArray<T>(array: readonly T[], partitionSize: number): readonly T[][] {
@@ -32,4 +33,18 @@ async function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export { partitionArray, http, sleep };
+function groupBy(list, keyGetter): Map<string, any[]> {
+	let map = Map.of();
+	list.forEach(item => {
+		const key = keyGetter(item);
+		const collection = map.get(key);
+		if (!collection) {
+			map = map.set(key, [item]);
+		} else {
+			collection.push(item);
+		}
+	});
+	return map;
+}
+
+export { partitionArray, http, sleep, groupBy };

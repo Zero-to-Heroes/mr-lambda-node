@@ -2,6 +2,7 @@ import { Replay } from '@firestone-hs/hs-replay-xml-parser';
 import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { BgsAvgStatsPerTurnPerHero } from './impl/battlegrounds-avg-stats-per-turn-per-hero';
+import { BgsHeroesTribe } from './impl/bgs-heroes-tribe';
 
 export interface Implementation {
 	loadReviewIds(query: string): Promise<readonly string[]>;
@@ -19,9 +20,11 @@ export interface Implementation {
 
 export const getImplementation = (implementationId: string): Implementation => {
 	switch (implementationId) {
-		// case 'heroes-tribe-comp':
-		// 	return new BgsHeroesTribe();
-		default:
+		case 'bgs-heroes-tribe':
+			return new BgsHeroesTribe();
+		case 'bgs-avg-stats-per-turn-per-hero':
 			return new BgsAvgStatsPerTurnPerHero();
+		default:
+			throw new Error('Invalid implementation ' + implementationId);
 	}
 };

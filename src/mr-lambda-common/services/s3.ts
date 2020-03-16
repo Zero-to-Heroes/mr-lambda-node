@@ -15,9 +15,9 @@ export class S3 {
 		});
 	}
 
-	private readContentInternal(bucketName: string, key: string, callback, retriesLeft = 10) {
+	private readContentInternal(bucketName: string, key: string, callback, retriesLeft = 30, error = null) {
 		if (retriesLeft <= 0) {
-			console.error('could not read s3 object', bucketName, key);
+			console.error('could not read s3 object', bucketName, key, error);
 			callback(null);
 			return;
 		}
@@ -27,7 +27,7 @@ export class S3 {
 			if (err) {
 				// console.warn('could not read s3 object', bucketName, key, err, retriesLeft);
 				setTimeout(() => {
-					this.readContentInternal(bucketName, key, callback, retriesLeft - 1);
+					this.readContentInternal(bucketName, key, callback, retriesLeft - 1, err);
 				}, 5000);
 				return;
 			}

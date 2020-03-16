@@ -16,7 +16,7 @@ const sqs = new Sqs();
 // the more traditional callback-style handler.
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
-	// console.log('event', event);
+	console.log('event', JSON.stringify(event, null, 4));
 	const jobName: string = event.jobName;
 	const query: string = event.query;
 	const implementation: string = event.implementation;

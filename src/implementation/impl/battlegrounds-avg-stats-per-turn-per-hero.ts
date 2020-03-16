@@ -4,13 +4,15 @@ import { Map } from 'immutable';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
 import { getConnection } from '../../mr-lambda-common/services/rds';
+import { getConnection as getConnectionBgs } from '../../mr-lambda-common/services/rds-bgs';
 import { Implementation } from '../implementation';
 import { BgsCompsBuilder } from './details/bgs-comps-builder';
+import { HeroStatsProfile } from './details/hero-stats-profile';
 
 export class BgsAvgStatsPerTurnPerHero implements Implementation {
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
 		const mysql = await getConnection();
-		// SELECT reviewId FROM replay_summary WHERE gameMode = 'battlegrounds' AND additionalResult is not NULL
+		// SELECT reviewId FROM replay_summary WHERE gameMode = 'battlegrounds' AND buildNumber = 42174 AND playerCardId like 'TB_BaconShop_HERO_%'
 		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
 		return result;
@@ -109,8 +111,108 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 
 	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
 		console.log('transforming final output', JSON.stringify(output, null, 4));
-		delete output.output['0'];
-		delete output.output['null'];
+
+		const threshold = this.buildThreshold(output);
+		console.log('threshold is', threshold);
+
+		// build the formatted data, which i the diff from average
+		const heroStatsProfile: readonly HeroStatsProfile[] = this.buildHeroStatsProfiles(output, threshold);
+		console.log('heroStatsProfile', heroStatsProfile);
+
+		// Save the data in db
+		const creationDate = new Date().toISOString();
+		const values: string = heroStatsProfile
+			.map(result =>
+				result.deltaStatsPerTurn
+					.map((value: number, key: number) => ({
+						heroCardId: result.heroCardId,
+						turn: key,
+						statsDelta: value,
+					}))
+					.valueSeq()
+					.toArray(),
+			)
+			.reduce((a, b) => a.concat(b), [])
+			.map(line => `( '${line.heroCardId}', '${creationDate}', ${line.turn}, ${line.statsDelta} )`)
+			.join(',');
+		const mysqlBgs = await getConnectionBgs();
+		const query = `
+			INSERT INTO bgs_hero_warband_stats
+			(heroCardId, date, turn, statsDelta)
+			VALUES ${values}
+		`;
+		console.log('running update query', query);
+		const updateResult = await mysqlBgs.query(query);
+		console.log('data inserted', updateResult);
+		return {
+			output: heroStatsProfile,
+		} as ReduceOutput;
+
+		// const result: string[] = [];
+		// for (const playerCardId of Object.keys(output.output)) {
+		// 	const positionResult = [playerCardId];
+		// 	for (const turn of Object.keys(output.output[playerCardId].stats)) {
+		// 		if (output.output[playerCardId].numberOfTurns[turn] < threshold) {
+		// 			continue;
+		// 		}
+		// 		const totalStats: number = output.output[playerCardId].stats[turn];
+		// 		positionResult.push('' + totalStats / output.output[playerCardId].numberOfTurns[turn]);
+		// 	}
+		// 	heroStatsProfile.push(positionResult.join(','));
+		// }
+		// return {
+		// 	output: heroStatsProfile.join('\n'),
+		// } as ReduceOutput;
+	}
+
+	private buildHeroStatsProfiles(output: ReduceOutput, threshold: number): readonly HeroStatsProfile[] {
+		const rawProfiles: HeroStatsProfile[] = [];
+		for (const playerCardId of Object.keys(output.output)) {
+			const rawProfile = {
+				heroCardId: playerCardId,
+				deltaStatsPerTurn: Map.of(),
+			} as HeroStatsProfile;
+			for (const turn of Object.keys(output.output[playerCardId].stats)) {
+				if (output.output[playerCardId].numberOfTurns[turn] < threshold) {
+					continue;
+				}
+				const totalStats: number = output.output[playerCardId].stats[turn];
+				rawProfile.deltaStatsPerTurn = rawProfile.deltaStatsPerTurn.set(
+					parseInt(turn),
+					totalStats / output.output[playerCardId].numberOfTurns[turn],
+				);
+			}
+			rawProfiles.push(rawProfile);
+		}
+		console.log('rawProfiles', rawProfiles);
+
+		let average: Map<number, number> = Map.of();
+		let isThereData = true;
+		let currentTurn = 0;
+		while (isThereData) {
+			const totalDataForTurn = rawProfiles
+				.map(profile => profile.deltaStatsPerTurn.get(currentTurn, 0))
+				.reduce((a, b) => a + b, 0);
+			isThereData = totalDataForTurn > 0;
+			const averageDataForTurn = totalDataForTurn / rawProfiles.length;
+			average = average.set(currentTurn, averageDataForTurn);
+			currentTurn++;
+		}
+		console.log('average', average);
+
+		const deltaProfiles = rawProfiles.map(
+			profile =>
+				({
+					heroCardId: profile.heroCardId,
+					deltaStatsPerTurn: profile.deltaStatsPerTurn.map((value, turn) => value - average.get(turn, 0)),
+				} as HeroStatsProfile),
+		);
+		console.log('deltaProfiles', deltaProfiles);
+		return deltaProfiles;
+	}
+
+	private buildThreshold(output: ReduceOutput): number {
+		return 40;
 		let maxTurns = 0;
 		for (const playerCardId of Object.keys(output.output)) {
 			const maxTurnsForPlayerCardId = Math.max(
@@ -118,27 +220,13 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 			);
 			maxTurns = Math.max(maxTurns, maxTurnsForPlayerCardId);
 		}
-		const result: string[] = [];
 		let max = 0;
 		for (const playerCardId of Object.keys(output.output)) {
 			for (const turn of Object.keys(output.output[playerCardId].stats)) {
 				max = Math.max(max, output.output[playerCardId].numberOfTurns[turn]);
 			}
 		}
-		const threshold = max / 100;
-		for (const playerCardId of Object.keys(output.output)) {
-			const positionResult = [playerCardId];
-			for (const turn of Object.keys(output.output[playerCardId].stats)) {
-				// if (output.output[playerCardId].numberOfTurns[turn] < threshold) {
-				// 	continue;
-				// }
-				const totalStats: number = output.output[playerCardId].stats[turn];
-				positionResult.push('' + totalStats / output.output[playerCardId].numberOfTurns[turn]);
-			}
-			result.push(positionResult.join(','));
-		}
-		return {
-			output: result.join('\n'),
-		} as ReduceOutput;
+		const threshold = max / 300;
+		return threshold;
 	}
 }
