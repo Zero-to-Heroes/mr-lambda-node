@@ -127,7 +127,7 @@ export class BgsHeroesTribe implements Implementation {
 			.join(',');
 		const query = `
 			INSERT INTO bgs_hero_tribes_at_end
-			(heroCardId, date, tribe, percent)
+			(heroCardId, creationDate, tribe, percent)
 			VALUES ${values}
 		`;
 		console.log('running query', query);

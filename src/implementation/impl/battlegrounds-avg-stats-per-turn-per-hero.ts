@@ -138,7 +138,7 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 		const mysqlBgs = await getConnectionBgs();
 		const query = `
 			INSERT INTO bgs_hero_warband_stats
-			(heroCardId, date, turn, statsDelta)
+			(heroCardId, creationDate, turn, statsDelta)
 			VALUES ${values}
 		`;
 		console.log('running update query', query);
