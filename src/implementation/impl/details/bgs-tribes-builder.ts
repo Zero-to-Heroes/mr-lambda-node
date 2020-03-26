@@ -43,7 +43,7 @@ export class BgsTribesBuilder {
 				cardId: element.get('cardID'),
 				controller: parseInt(element.find(`.Tag[@tag='${GameTag.CONTROLLER}']`)?.get('value') || '-1'),
 				zone: parseInt(element.find(`.Tag[@tag='${GameTag.ZONE}']`)?.get('value') || '-1'),
-				// zonePosition: parseInt(element.find(`.Tag[@tag='${GameTag.ZONE_POSITION}']`)?.get('value') || '-1'),
+				zonePosition: parseInt(element.find(`.Tag[@tag='${GameTag.ZONE_POSITION}']`)?.get('value') || '-1'),
 				cardType: parseInt(element.find(`.Tag[@tag='${GameTag.CARDTYPE}']`)?.get('value') || '-1'),
 				tribe: parseInt(element.find(`.Tag[@tag='${GameTag.CARDRACE}']`)?.get('value') || '-1'),
 			};
@@ -57,10 +57,10 @@ export class BgsTribesBuilder {
 					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 					structure.entities[element.get('entity')].zone = parseInt(element.get('value'));
 				}
-				// if (parseInt(element.get('tag')) === GameTag.ZONE_POSITION) {
-				// 	// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
-				// 	structure.entities[element.get('entity')].zonePosition = parseInt(element.get('value'));
-				// }
+				if (parseInt(element.get('tag')) === GameTag.ZONE_POSITION) {
+					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
+					structure.entities[element.get('entity')].zonePosition = parseInt(element.get('value'));
+				}
 			}
 			if (
 				parseInt(element.get('tag')) === GameTag.NEXT_STEP &&

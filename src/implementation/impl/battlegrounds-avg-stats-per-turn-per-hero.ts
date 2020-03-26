@@ -199,14 +199,24 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 			currentTurn++;
 		}
 		console.log('average', average);
+		// rawProfiles.push({
+		// 	heroCardId: 'average',
+		// 	deltaStatsPerTurn: average,
+		// });
 
-		const deltaProfiles = rawProfiles.map(
-			profile =>
-				({
-					heroCardId: profile.heroCardId,
-					deltaStatsPerTurn: profile.deltaStatsPerTurn.map((value, turn) => value - average.get(turn, 0)),
-				} as HeroStatsProfile),
-		);
+		const deltaProfiles = [
+			...rawProfiles.map(
+				profile =>
+					({
+						heroCardId: profile.heroCardId,
+						deltaStatsPerTurn: profile.deltaStatsPerTurn.map((value, turn) => value - average.get(turn, 0)),
+					} as HeroStatsProfile),
+			),
+			{
+				heroCardId: 'average',
+				deltaStatsPerTurn: average,
+			},
+		];
 		console.log('deltaProfiles', deltaProfiles);
 		return deltaProfiles;
 	}

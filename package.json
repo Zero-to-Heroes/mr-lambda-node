@@ -17,7 +17,7 @@
 	"private": true,
 	"dependencies": {
 		"@firestone-hs/hs-replay-xml-parser": "0.0.19",
-		"@firestone-hs/reference-data": "^0.1.9",
+		"@firestone-hs/reference-data": "^0.1.23",
 		"@firestone-hs/replay-parser": "0.0.9",
 		"aws-sdk": "^2.524.0",
 		"deckstrings": "^2.1.0",
