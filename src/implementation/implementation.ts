@@ -3,6 +3,7 @@ import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { BgsAvgStatsPerTurnPerHero } from './impl/battlegrounds-avg-stats-per-turn-per-hero';
 import { BgsHeroesTribe } from './impl/bgs-heroes-tribe';
+import { BuildAiDecklists } from './impl/build-ai-decklists';
 
 export interface Implementation {
 	loadReviewIds(query: string): Promise<readonly string[]>;
@@ -24,6 +25,8 @@ export const getImplementation = (implementationId: string): Implementation => {
 			return new BgsHeroesTribe();
 		case 'bgs-avg-stats-per-turn-per-hero':
 			return new BgsAvgStatsPerTurnPerHero();
+		case 'ai-decklist':
+			return new BuildAiDecklists();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}
