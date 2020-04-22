@@ -78,13 +78,13 @@ Resources:
                 BgsWarbandStatsTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM replay_summary WHERE gameMode = ''battlegrounds'' AND buildNumber = 44582 AND playerCardId like ''TB_BaconShop_HERO_%'' AND playerRank > 6000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
+                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM replay_summary WHERE gameMode = ''battlegrounds'' AND buildNumber = 45932 AND playerCardId like ''TB_BaconShop_HERO_%'' AND playerRank > 6000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
                         Schedule: cron(0 1 * * ? *) # Triggers every day at 1 AM
                 # Build tribes
                 BgsTribesStatTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-heroes-tribe", "query": "SELECT reviewId FROM replay_summary WHERE gameMode = ''battlegrounds'' AND buildNumber = 44582 AND playerCardId like ''TB_BaconShop_HERO_%'' AND additionalResult in (1, 2, 3, 4) AND playerRank > 6000", "implementation": "bgs-heroes-tribe" }'
+                        Input: '{ "jobName": "bgs-heroes-tribe", "query": "SELECT reviewId FROM replay_summary WHERE gameMode = ''battlegrounds'' AND buildNumber = 45932 AND playerCardId like ''TB_BaconShop_HERO_%'' AND additionalResult in (1, 2, 3, 4) AND playerRank > 6000", "implementation": "bgs-heroes-tribe" }'
                         Schedule: cron(0 2 * * ? *) # Triggers every day at 2 AM
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
