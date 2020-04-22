@@ -50,60 +50,21 @@ export class BuildAiDecklists implements Implementation {
 		['DAL_366t2', 'DAL_366'],
 		['DAL_366t3', 'DAL_366'],
 		['DAL_366t4', 'DAL_366'],
+		// Galakrond
+		['DRG_600t2', 'DRG_600'],
+		['DRG_600t3', 'DRG_600'],
+		['DRG_610t2', 'DRG_610'],
+		['DRG_610t3', 'DRG_610'],
+		['DRG_620t2', 'DRG_620'],
+		['DRG_620t3', 'DRG_620'],
+		['DRG_650t2', 'DRG_650'],
+		['DRG_650t3', 'DRG_650'],
+		['DRG_660t2', 'DRG_660'],
+		['DRG_660t3', 'DRG_660'],
 	];
 
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
 		const mysql = await getConnection();
-		// Innkeeper normal
-		// const dbResults: any[] = await mysql.query(
-		// 	`
-		// 	SELECT reviewId
-		// 	FROM replay_summary
-		// 	WHERE scenarioId in (252, 256, 259, 263, 261, 258, 257, 262, 253)
-		// `,
-		// );
-		// Innkeeper expert
-		// const dbResults: any[] = await mysql.query(
-		// 	`
-		// 	SELECT reviewId
-		// 	FROM replay_summary
-		// 	WHERE scenarioId in (260, 264, 265, 266, 267, 268, 269, 270, 271)
-		// `,
-		// );
-		// Galakrond's Awakening Normal
-		// const dbResults: any[] = await mysql.query(
-		// 	`
-		// 	SELECT reviewId
-		// 	FROM replay_summary
-		// 	WHERE scenarioId in (3469, 3470, 3471, 3472, 3473, 3475, 3484, 3488, 3489, 3490, 3491, 3493)
-		// `,
-		// );
-		// Galakrond's Awakening Heroic
-		// const dbResults: any[] = await mysql.query(
-		// 	`
-		// 	SELECT reviewId
-		// 	FROM replay_summary
-		// 	WHERE scenarioId in (3556, 3583, 3584, 3585, 3586, 3587, 3594, 3595, 3596, 3597, 3598, 3599)
-		// `,
-		// );
-		// Tombs of Terror normal
-		// const dbResults: any[] = await mysql.query(
-		// 	`
-		// 	SELECT reviewId
-		// 	FROM replay_summary
-		// 	WHERE scenarioId in (3428, 3429, 3430, 3431, 3432)
-		// 	AND creationDate > '2019-10-01'
-		// `,
-		// );
-		// Tombs of Terror heroic
-		// const dbResults: any[] = await mysql.query(
-		// 	`
-		// 	SELECT reviewId
-		// 	FROM replay_summary
-		// 	WHERE scenarioId in (3433, 3434, 3435, 3436, 3437)
-		// 	AND creationDate > '2019-10-01'
-		// `,
-		// );
 		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
 		// console.log('loaded DB results', result.length);
