@@ -41,10 +41,12 @@ export class BgsCompsBuilder {
 		// Deathwing
 		if (element.tag === 'ShowEntity' && element.get('cardID') === 'TB_BaconShop_HP_061e') {
 			const attachedTo = parseInt(element.find(`.Tag[@tag='${GameTag.ATTACHED}']`)?.get('value') || '-1');
-			// console.log('modifying attack', attachedTo, structure.entities[attachedTo]);
-			// We don't need to remove this flag, as new entities are created for each round?
-			structure.entities[attachedTo].isDeathwing = true;
-			// console.log('modifyed attack', attachedTo, structure.entities[attachedTo]);
+			if (structure.entities[attachedTo]) {
+				// console.log('modifying attack', attachedTo, structure.entities[attachedTo]);
+				// We don't need to remove this flag, as new entities are created for each round?
+				structure.entities[attachedTo].isDeathwing = true;
+				// console.log('modifyed attack', attachedTo, structure.entities[attachedTo]);
+			}
 		}
 		if (element.tag === 'TagChange') {
 			if (structure.entities[element.get('entity')]) {
