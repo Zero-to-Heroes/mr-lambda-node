@@ -18,16 +18,21 @@ export class BgsTribesBuilder {
 			currentTurn: 0,
 		};
 		this.parseElement(elementTree.getroot(), replay.mainPlayerId, opponentPlayerEntityId, null, structure);
-		console.log('mapped tribes', structure.boardByTurn.toJS(), structure.boardByTurn.valueSeq());
+		// console.log('mapped tribes', structure.boardByTurn.toJS(), structure.boardByTurn.valueSeq());
 		const tribeCompos = structure.boardByTurn.valueSeq().toArray();
-		console.log('tribeCompos', tribeCompos);
+		// console.log('tribeCompos', tribeCompos);
 		// We're only interested in the last one
 		const lastRoundCompo = tribeCompos[tribeCompos.length - 1];
-		console.log('lastRoundCompo', lastRoundCompo);
+		if (!lastRoundCompo) {
+			console.warn('missing compo', tribeCompos);
+			console.log(JSON.stringify(structure, null, 4));
+			return Map.of();
+		}
+		// console.log('lastRoundCompo', lastRoundCompo);
 		const grouped = groupBy(lastRoundCompo, card => card.tribe);
-		console.log('grouped', grouped);
+		// console.log('grouped', grouped);
 		const countByTribe = grouped.map((cards: any[], tribeId: string) => cards.length).toMap();
-		console.log('countByTribe', countByTribe.toJS());
+		// console.log('countByTribe', countByTribe.toJS());
 		return countByTribe.toJS();
 	}
 
@@ -84,7 +89,7 @@ export class BgsTribesBuilder {
 					// 	JSON.stringify(playerEntitiesOnBoard, null, 4),
 					// );
 					structure.boardByTurn = structure.boardByTurn.set(structure.currentTurn, playerEntitiesOnBoard);
-					console.log('updated', structure.boardByTurn.toJS(), playerEntitiesOnBoard);
+					// console.log('updated', structure.boardByTurn.toJS(), playerEntitiesOnBoard);
 					structure.currentTurn++;
 				}
 				// console.log('board for turn', structure.currentTurn, mainPlayerId, '\n', playerEntitiesOnBoard);

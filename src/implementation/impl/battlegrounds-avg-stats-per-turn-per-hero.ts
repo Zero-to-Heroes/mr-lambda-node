@@ -44,7 +44,7 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 			}
 			previous = statsByTurn[turn];
 		}
-		console.log('statsByTurn', JSON.stringify(statsByTurn, null, 4));
+		// console.log('statsByTurn', JSON.stringify(statsByTurn, null, 4));
 		// console.log('numberOfTurns', numberOfTurns);
 		return {
 			[miniReview.playerCardId]: {

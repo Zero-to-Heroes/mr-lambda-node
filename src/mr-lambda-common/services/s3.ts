@@ -17,7 +17,7 @@ export class S3 {
 
 	private readContentInternal(bucketName: string, key: string, callback, retriesLeft = 30, error = null) {
 		if (retriesLeft <= 0) {
-			console.error('could not read s3 object', bucketName, key, error);
+			console.warn('could not read s3 object', bucketName, key, error);
 			callback(null);
 			return;
 		}
