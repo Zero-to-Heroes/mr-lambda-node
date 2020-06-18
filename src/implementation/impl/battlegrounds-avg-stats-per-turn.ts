@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Replay } from '@firestone-hs/hs-replay-xml-parser';
+import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { Map } from 'immutable';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';

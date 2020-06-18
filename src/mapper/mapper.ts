@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { parseHsReplayString, Replay } from '@firestone-hs/hs-replay-xml-parser';
+import { parseHsReplayString, Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { getImplementation } from '../implementation/implementation';
 import { MapEvent } from '../mr-lambda-common/models/map-event';
 import { MapOutput } from '../mr-lambda-common/models/map-output';

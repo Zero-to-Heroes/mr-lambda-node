@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { Replay } from '@firestone-hs/hs-replay-xml-parser';
+import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { Map } from 'immutable';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
@@ -33,15 +33,15 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 		const numberOfTurns = compsByTurn.map((value, key) => 1).toJS();
 		let previous = 0;
 		for (const turn of Object.keys(statsByTurn)) {
-			if (statsByTurn[turn] < previous - 10) {
-				console.log(
-					'WARN: suspicious decrease in stats value',
-					miniReview.id,
-					turn,
-					statsByTurn[turn],
-					previous,
-				);
-			}
+			// if (statsByTurn[turn] < previous - 10) {
+			// 	console.log(
+			// 		'WARN: suspicious decrease in stats value',
+			// 		miniReview.id,
+			// 		turn,
+			// 		statsByTurn[turn],
+			// 		previous,
+			// 	);
+			// }
 			previous = statsByTurn[turn];
 		}
 		// console.log('statsByTurn', JSON.stringify(statsByTurn, null, 4));
@@ -173,9 +173,9 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 				deltaStatsPerTurn: Map.of(),
 			} as HeroStatsProfile;
 			for (const turn of Object.keys(output.output[playerCardId].stats)) {
-				if (output.output[playerCardId].numberOfTurns[turn] < threshold) {
-					continue;
-				}
+				// if (output.output[playerCardId].numberOfTurns[turn] < threshold) {
+				// 	continue;
+				// }
 				const totalStats: number = output.output[playerCardId].stats[turn];
 				rawProfile.deltaStatsPerTurn = rawProfile.deltaStatsPerTurn.set(
 					parseInt(turn),
@@ -222,7 +222,7 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 	}
 
 	private buildThreshold(output: ReduceOutput): number {
-		return 40;
+		return 20;
 		let maxTurns = 0;
 		for (const playerCardId of Object.keys(output.output)) {
 			const maxTurnsForPlayerCardId = Math.max(

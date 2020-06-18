@@ -14,7 +14,7 @@ const s3 = new S3();
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
 	// console.log('event', event);
-	const reduceEvents: readonly ReduceEvent[] = (event.Records as any[])
+	const reduceEvents: readonly ReduceEvent[] = ((event.Records as any[]) || [])
 		.map(event => JSON.parse(event.body))
 		.reduce((a, b) => a.concat(b), []);
 	// console.log('handling', reduceEvents.length, 'reduce events');

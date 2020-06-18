@@ -1,4 +1,4 @@
-import { Replay } from '@firestone-hs/hs-replay-xml-parser';
+import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { BgsAvgStatsPerTurnPerHero } from './impl/battlegrounds-avg-stats-per-turn-per-hero';

@@ -81,14 +81,14 @@ Resources:
                 BgsWarbandStatsTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 49534 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr INNER JOIN (select 1 as finalPosition UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 ) as y on replay_summary.additionalResult = y.finalPosition ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 6000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
+                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 49534 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 5000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
                         Schedule: cron(0 1 * * ? *) # Triggers every day at 1 AM
                 # Build tribes
                 BgsTribesStatTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-heroes-tribe", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 49534 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr INNER JOIN (select 1 as finalPosition UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 ) as y on replay_summary.additionalResult = y.finalPosition ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 6000", "implementation": "bgs-heroes-tribe" }'
-                        Schedule: cron(0 2 * * ? *) # Triggers every day at 2 AM
+                        Input: '{ "jobName": "bgs-heroes-tribe", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 49534 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 5000", "implementation": "bgs-heroes-tribe" }'
+                        Schedule: cron(0 3 * * ? *) # Triggers every day at 3 AM
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:
