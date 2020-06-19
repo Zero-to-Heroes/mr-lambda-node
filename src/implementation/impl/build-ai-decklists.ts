@@ -104,6 +104,7 @@ export class BuildAiDecklists implements Implementation {
 			const entitiesWithCards = replay.replay
 				.findall(`.//*[@cardID]`)
 				// Specific case for ToT, as it's the default value for the boss at the start of every game
+				.filter(element => element.tag !== 'ChangeEntity')
 				.filter(entity => entity.get('cardID') !== 'ULDA_BOSS_15h')
 				.filter(entity => isTransformMarker(entity) || this.isEntityValid(entity));
 			// Because cards can change controllers during the game, we need to only consider the
