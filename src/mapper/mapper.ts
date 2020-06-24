@@ -79,7 +79,9 @@ const processMapEvent = async (reviewId: string, implementation: string) => {
 		return null;
 	}
 	// console.log('loaded mini review', miniReview.key, miniReview['key'], miniReview);
-	const replayString = await s3.readContentAsString('xml.firestoneapp.com', miniReview.replayKey);
+	const replayString = miniReview.replayKey.endsWith('.zip')
+		? await s3.readZippedContent('xml.firestoneapp.com', miniReview.replayKey)
+		: await s3.readContentAsString('xml.firestoneapp.com', miniReview.replayKey);
 	// console.log('Loaded replay as a string. First characters are ' + replayString.substring(0, 100));
 	const replay: Replay = parseHsReplayString(replayString);
 	if (!replay) {
