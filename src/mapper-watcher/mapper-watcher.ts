@@ -90,13 +90,12 @@ const startReducerPhase = async (
 		'grouping file keys per mapper',
 		mapperOutputFileKeys.length,
 		fileKeysPerMapper.length,
-		fileKeysPerMapper[0].length,
+		fileKeysPerMapper[0]?.length,
 	);
 	const reduceEvents: readonly ReduceEvent[] = fileKeysPerMapper.map(files =>
 		buildReduceEvent(files, jobRootFolder, implementation),
 	);
 	console.log('Built SQS reducer events to send: ' + reduceEvents.length);
-	// console.log('First event: ' + reduceEvents[0]);
 	await sqs.sendMessagesToQueue(reduceEvents, process.env.SQS_REDUCER_URL);
 	console.log('Sent all SQS messages to reducers');
 	return reduceEvents;

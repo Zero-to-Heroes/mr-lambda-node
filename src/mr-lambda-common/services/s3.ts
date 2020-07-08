@@ -37,7 +37,7 @@ export class S3 {
 			return;
 		}
 		const input = { Bucket: bucketName, Key: key };
-		console.log('getting s3 object', input);
+		// console.log('getting s3 object', input);
 		this.s3.getObject(input, (err, data) => {
 			if (err) {
 				console.warn('could not read s3 object', bucketName, key, err, retriesLeft);
@@ -47,7 +47,7 @@ export class S3 {
 				return;
 			}
 			const objectContent = data.Body.toString('utf8');
-			console.log('read object content', bucketName, key, data);
+			console.log('read object content', bucketName, key);
 			callback(objectContent);
 		});
 	}
@@ -77,9 +77,7 @@ export class S3 {
 			try {
 				const zipContent = await loadAsync(data.Body as any);
 				const file = Object.keys(zipContent.files)[0];
-				// console.log('files in zip', zipContent.files, file);
 				const objectContent = await zipContent.file(file).async('string');
-				// console.log('read object content', objectContent);
 				callback(objectContent);
 			} catch (e) {
 				console.warn('could not read s3 object', bucketName, key, err, retriesLeft, e);
@@ -121,7 +119,7 @@ export class S3 {
 			};
 			this.s3.upload(input, (err, data) => {
 				if (err) {
-					console.error('could not upload file to S3', input, err);
+					console.error('could not upload file to S3', err);
 					resolve(false);
 					return;
 				}

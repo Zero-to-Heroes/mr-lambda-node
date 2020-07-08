@@ -16,19 +16,16 @@ const reviewDao = new ReviewDao();
 // the more traditional callback-style handler.
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
-	// console.log('event', event.Records);
 	const mapEvents: readonly MapEvent[] = (event.Records as any[])
 		.map(event => JSON.parse(event.body))
 		.reduce((a, b) => a.concat(b), []);
-	// console.log('handling map events', mapEvents.length);
 	// let currentMapEvent = 0;
 	for (const mapEvent of mapEvents) {
-		// currentMapEvent++;
 		// console.log('processing map event', mapEvent.reviewIds && mapEvent.reviewIds.length);
 		let currentReviewId = 0;
 		for (const reviewId of mapEvent.reviewIds) {
 			currentReviewId++;
-			// console.log('handling', currentReviewId, reviewId);
+			console.log('handling', currentReviewId, reviewId);
 			const fileName = 'mapper-' + reviewId;
 			if (await db.hasEntry(mapEvent.jobRootFolder, mapEvent.folder, reviewId)) {
 				console.warn('Multiple processing ' + mapEvent.jobRootFolder + '/' + mapEvent.folder + '/' + reviewId);
@@ -87,6 +84,8 @@ const processMapEvent = async (reviewId: string, implementation: string) => {
 	if (!replay) {
 		return null;
 	}
+	console.log('replay parsed');
 	const output = await getImplementation(implementation).extractMetric(replay, miniReview, replayString);
+	console.log('output computed');
 	return output;
 };

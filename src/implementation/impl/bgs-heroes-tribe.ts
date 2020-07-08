@@ -25,7 +25,6 @@ export class BgsHeroesTribe implements Implementation {
 
 		// By tribe, the total number of minions
 		const tribesAtEndOfGame = await new BgsTribesBuilder().buidTribesAtEndGame(replay, replayXml);
-		// console.log('tribesAtEndOfGame', JSON.stringify(tribesAtEndOfGame, null, 4));
 		return {
 			[miniReview.playerCardId]: {
 				tribesAtEndOfGame: tribesAtEndOfGame,
@@ -42,19 +41,10 @@ export class BgsHeroesTribe implements Implementation {
 			console.log('newResult is null');
 			return currentResult;
 		}
-		// console.log('merging', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
 
 		const output = {};
 
 		for (const playerCardId of Object.keys(currentResult.output)) {
-			// console.log(
-			// 	'considering from currentResult',
-			// 	playerCardId,
-			// 	currentResult,
-			// 	currentResult.output[playerCardId],
-			// 	newResult,
-			// 	newResult.output[playerCardId],
-			// );
 			output[playerCardId] = this.mergeOutputs(
 				currentResult.output[playerCardId],
 				newResult.output[playerCardId] || { tribesAtEndOfGame: {} },
@@ -62,20 +52,11 @@ export class BgsHeroesTribe implements Implementation {
 		}
 		// Might do the same thing twice, but it's clearer that way
 		for (const playerCardId of Object.keys(newResult.output)) {
-			// console.log(
-			// 	'considering from newResult',
-			// 	playerCardId,
-			// 	currentResult,
-			// 	currentResult.output[playerCardId],
-			// 	newResult,
-			// 	newResult.output[playerCardId],
-			// );
 			output[playerCardId] = this.mergeOutputs(
 				newResult.output[playerCardId],
 				currentResult.output[playerCardId] || { tribesAtEndOfGame: {} },
 			);
 		}
-		// console.log('merged output', JSON.stringify(output, null, 4));
 
 		return {
 			output: output,
@@ -83,7 +64,6 @@ export class BgsHeroesTribe implements Implementation {
 	}
 
 	private mergeOutputs(currentOutput, newOutput) {
-		// console.log('merging outputs', JSON.stringify(currentOutput, null, 4), JSON.stringify(newOutput, null, 4));
 		const result: any = {
 			tribesAtEndOfGame: {},
 		};
@@ -98,7 +78,6 @@ export class BgsHeroesTribe implements Implementation {
 				result.tribesAtEndOfGame[tribe] = newTribeTotal;
 			}
 		}
-		// console.log('merged outputs', JSON.stringify(result, null, 4));
 		return result;
 	}
 

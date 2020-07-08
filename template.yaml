@@ -65,7 +65,7 @@ Resources:
             Runtime: nodejs10.x
             Timeout: 880
             CodeUri: dist/driver/driver
-            MemorySize: 512
+            MemorySize: 384
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -73,6 +73,8 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Tags:
+                LambdaName: mr-lambda-driver
             Events:
                 # Nightly build of the stats
                 # Query are super complicated in order to benefit from the SQL optimization when running JOIN queries, which
@@ -81,21 +83,21 @@ Resources:
                 BgsWarbandStatsTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 51510 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 5000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
-                        Schedule: cron(0 1 * * ? *) # Triggers every day at 1 AM
+                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 51510 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 6000 ORDER BY t1.creationDate DESC LIMIT 200000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
+                        Schedule: cron(0 1 */2 * ? *) # Triggers every two days at 1 AM
                 # Build tribes
                 BgsTribesStatTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-heroes-tribe", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 51510 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 5000", "implementation": "bgs-heroes-tribe" }'
-                        Schedule: cron(0 3 * * ? *) # Triggers every day at 3 AM
+                        Input: '{ "jobName": "bgs-heroes-tribe", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 51510 as buildNumberr ) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 6000 ORDER BY t1.creationDate DESC LIMIT 200000", "implementation": "bgs-heroes-tribe" }'
+                        Schedule: cron(0 3 */2 * ? *) # Triggers every two days at 3 AM
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:
             Handler: mapper-watcher/mapper-watcher.default
             Runtime: nodejs10.x
             CodeUri: dist/mapper-watcher/mapper-watcher
-            MemorySize: 512
+            MemorySize: 256
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -103,6 +105,8 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Tags:
+                LambdaName: mr-lambda-mapper-watcher
             Timeout: 600
             Events:
                 SQSAggregatorWatcherEvent:
@@ -116,7 +120,7 @@ Resources:
             Handler: reducer-watcher/reducer-watcher.default
             Runtime: nodejs10.x
             CodeUri: dist/reducer-watcher/reducer-watcher
-            MemorySize: 512
+            MemorySize: 128
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -124,6 +128,8 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Tags:
+                LambdaName: mr-lambda-reducer-watcher
             Timeout: 600
             Events:
                 SQSAggregatorWatcherEvent:
@@ -145,6 +151,8 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Tags:
+                LambdaName: mr-lambda-aggregator-watcher
             Timeout: 600
             Events:
                 SQSAggregatorWatcherEvent:
@@ -159,7 +167,7 @@ Resources:
             Handler: mapper/mapper.default
             Runtime: nodejs10.x
             CodeUri: dist/mapper/mapper
-            MemorySize: 1024
+            MemorySize: 384
             ReservedConcurrentExecutions: 50
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
@@ -168,6 +176,8 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Tags:
+                LambdaName: mr-lambda-mapper
             Timeout: 600
             Events:
                 SQSMapperRequestedEvent:
@@ -182,7 +192,7 @@ Resources:
             Handler: reducer/reducer.default
             Runtime: nodejs10.x
             CodeUri: dist/reducer/reducer
-            MemorySize: 1024
+            MemorySize: 384
             ReservedConcurrentExecutions: 50
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
@@ -191,6 +201,8 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Tags:
+                LambdaName: mr-lambda-reducer
             Timeout: 600
             Events:
                 SQSReducerRequestedEvent:
@@ -205,7 +217,7 @@ Resources:
             Handler: reducer/reducer.default
             Runtime: nodejs10.x
             CodeUri: dist/reducer/reducer
-            MemorySize: 1024
+            MemorySize: 256
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -213,6 +225,8 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
+            Tags:
+                LambdaName: mr-lambda-aggregator
             Timeout: 600
             Events:
                 SQSAggregatorRequestedEvent:

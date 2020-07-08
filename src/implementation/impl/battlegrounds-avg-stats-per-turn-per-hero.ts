@@ -31,21 +31,6 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 			.map((value, key) => value.reduce((acc, obj) => acc + (obj.attack || 0) + (obj.health || 0), 0))
 			.toJS();
 		const numberOfTurns = compsByTurn.map((value, key) => 1).toJS();
-		let previous = 0;
-		for (const turn of Object.keys(statsByTurn)) {
-			// if (statsByTurn[turn] < previous - 10) {
-			// 	console.log(
-			// 		'WARN: suspicious decrease in stats value',
-			// 		miniReview.id,
-			// 		turn,
-			// 		statsByTurn[turn],
-			// 		previous,
-			// 	);
-			// }
-			previous = statsByTurn[turn];
-		}
-		// console.log('statsByTurn', JSON.stringify(statsByTurn, null, 4));
-		// console.log('numberOfTurns', numberOfTurns);
 		return {
 			[miniReview.playerCardId]: {
 				numberOfTurns: numberOfTurns,
@@ -63,7 +48,6 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 			console.log('newResult is null');
 			return currentResult;
 		}
-		// console.log('merging', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
 
 		const output = {};
 
@@ -80,7 +64,6 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 				currentResult.output[playerCardId] || { stats: {}, numberOfTurns: {} },
 			);
 		}
-		// console.log('merged output', JSON.stringify(output, null, 4));
 
 		return {
 			output: output,
@@ -88,7 +71,6 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 	}
 
 	private mergeOutputs(currentOutput, newOutput) {
-		// console.log('merging outputs', JSON.stringify(currentOutput, null, 4), JSON.stringify(newOutput, null, 4));
 		const result: any = {
 			numberOfTurns: {},
 			stats: {},
@@ -105,13 +87,10 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 				result.numberOfTurns[turn] = newOutput.numberOfTurns[turn];
 			}
 		}
-		// console.log('merged outputs', JSON.stringify(result, null, 4));
 		return result;
 	}
 
 	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
-		console.log('transforming final output', JSON.stringify(output, null, 4));
-
 		const threshold = this.buildThreshold(output);
 		console.log('threshold is', threshold);
 
@@ -147,22 +126,6 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 		return {
 			output: heroStatsProfile,
 		} as ReduceOutput;
-
-		// const result: string[] = [];
-		// for (const playerCardId of Object.keys(output.output)) {
-		// 	const positionResult = [playerCardId];
-		// 	for (const turn of Object.keys(output.output[playerCardId].stats)) {
-		// 		if (output.output[playerCardId].numberOfTurns[turn] < threshold) {
-		// 			continue;
-		// 		}
-		// 		const totalStats: number = output.output[playerCardId].stats[turn];
-		// 		positionResult.push('' + totalStats / output.output[playerCardId].numberOfTurns[turn]);
-		// 	}
-		// 	heroStatsProfile.push(positionResult.join(','));
-		// }
-		// return {
-		// 	output: heroStatsProfile.join('\n'),
-		// } as ReduceOutput;
 	}
 
 	private buildHeroStatsProfiles(output: ReduceOutput, threshold: number): readonly HeroStatsProfile[] {
@@ -199,10 +162,6 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 			currentTurn++;
 		}
 		console.log('average', average);
-		// rawProfiles.push({
-		// 	heroCardId: 'average',
-		// 	deltaStatsPerTurn: average,
-		// });
 
 		const deltaProfiles = [
 			...rawProfiles.map(

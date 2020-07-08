@@ -29,21 +29,6 @@ export class BgsAvgStatsPerTurnPerFinalPosition implements Implementation {
 			.map((value, key) => value.reduce((acc, obj) => acc + (obj.attack || 0) + (obj.health || 0), 0))
 			.toJS();
 		const numberOfTurns = compsByTurn.map((value, key) => 1).toJS();
-		let previous = 0;
-		for (const turn of Object.keys(statsByTurn)) {
-			if (statsByTurn[turn] < previous - 10) {
-				console.log(
-					'WARN: suspicious decrease in stats value',
-					miniReview.id,
-					turn,
-					statsByTurn[turn],
-					previous,
-				);
-			}
-			previous = statsByTurn[turn];
-		}
-		console.log('statsByTurn', JSON.stringify(statsByTurn, null, 4));
-		// console.log('numberOfTurns', numberOfTurns);
 		return {
 			[miniReview.additionalResult]: {
 				numberOfTurns: numberOfTurns,
@@ -61,7 +46,6 @@ export class BgsAvgStatsPerTurnPerFinalPosition implements Implementation {
 			console.log('newResult is null');
 			return currentResult;
 		}
-		// console.log('merging', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
 
 		const output = {};
 
@@ -78,7 +62,6 @@ export class BgsAvgStatsPerTurnPerFinalPosition implements Implementation {
 				currentResult.output[finalPosition] || { stats: {}, numberOfTurns: {} },
 			);
 		}
-		// console.log('merged output', JSON.stringify(output, null, 4));
 
 		return {
 			output: output,
@@ -86,7 +69,6 @@ export class BgsAvgStatsPerTurnPerFinalPosition implements Implementation {
 	}
 
 	private mergeOutputs(currentOutput, newOutput) {
-		// console.log('merging outputs', JSON.stringify(currentOutput, null, 4), JSON.stringify(newOutput, null, 4));
 		const result: any = {
 			numberOfTurns: {},
 			stats: {},
@@ -103,12 +85,10 @@ export class BgsAvgStatsPerTurnPerFinalPosition implements Implementation {
 				result.numberOfTurns[turn] = newOutput.numberOfTurns[turn];
 			}
 		}
-		// console.log('merged outputs', JSON.stringify(result, null, 4));
 		return result;
 	}
 
 	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
-		console.log('transforming final output', JSON.stringify(output, null, 4));
 		delete output.output['0'];
 		delete output.output['null'];
 		let maxTurns = 0;
