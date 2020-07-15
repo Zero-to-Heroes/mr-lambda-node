@@ -8,7 +8,7 @@ import { partitionArray } from '../mr-lambda-common/services/utils';
 const MAPPER_FOLDER = 'mapper';
 const REVIEWS_PER_MAPPER = 25;
 const MAX_MAPPERS = 150;
-const MAX_REVIEWS_PER_MAPPER = 500;
+const MAX_REVIEWS_PER_MAPPER = 100;
 
 const sqs = new Sqs();
 

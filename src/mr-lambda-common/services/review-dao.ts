@@ -1,13 +1,26 @@
 import { MiniReview } from '../models/mini-review';
-import { http } from './utils';
+import { getConnection } from './rds';
 
 // const REVIEW_API = 'https://www.zerotoheroes.com/api/reviews/';
 
 export class ReviewDao {
 	public async getMiniReview(reviewId: string): Promise<MiniReview> {
-		// console.log('getting review', reviewId);
-		const review: any = await http(`https://nj8w9uc6p5.execute-api.us-west-2.amazonaws.com/Prod/${reviewId}`);
-		// console.log('retrieved review', review);
-		return JSON.parse(review);
+		const mysql = await getConnection();
+		const dbResults: readonly any[] = await mysql.query(
+			`
+				SELECT * FROM replay_summary 
+				WHERE reviewId = '${reviewId}'
+			`,
+		);
+		const review = dbResults && dbResults.length > 0 ? dbResults[0] : null;
+		return review
+			? ({
+					id: review.reviewId,
+					userId: review.userId,
+					playerCardId: review.playerCardId,
+					replayKey: review.replayKey,
+					additionalResult: review.additionalResult,
+			  } as MiniReview)
+			: null;
 	}
 }
