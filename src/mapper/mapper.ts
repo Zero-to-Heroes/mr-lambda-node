@@ -72,7 +72,7 @@ export default async (event): Promise<any> => {
 const processMapEvent = async (reviewId: string, implementation: string) => {
 	console.log('procesing review id', reviewId);
 	const miniReview: MiniReview = await reviewDao.getMiniReview(reviewId);
-	if (!miniReview) {
+	if (!miniReview || !miniReview.replayKey) {
 		return null;
 	}
 	console.log('loaded mini review', miniReview.replayKey);
