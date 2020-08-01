@@ -84,8 +84,8 @@ const processMapEvent = async (reviewId: string, implementation: string) => {
 	if (!replay) {
 		return null;
 	}
-	console.log('replay parsed');
+	// console.log('replay parsed');
 	const output = await getImplementation(implementation).extractMetric(replay, miniReview, replayString);
-	console.log('output computed');
+	// console.log('output computed');
 	return output;
 };

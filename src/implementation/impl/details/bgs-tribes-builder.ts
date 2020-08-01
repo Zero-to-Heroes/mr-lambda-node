@@ -5,7 +5,7 @@ import { Map } from 'immutable';
 import { groupBy } from '../../../mr-lambda-common/services/utils';
 
 export class BgsTribesBuilder {
-	public buidTribesAtEndGame(replay: Replay, replayXml: string): Map<string, number> {
+	public buidTribesAtEndGame(replay: Replay, replayXml: string): { [tribeId: number]: number } {
 		const elementTree = replay.replay;
 		const opponentPlayerElement = elementTree
 			.findall('.//Player')
@@ -26,14 +26,14 @@ export class BgsTribesBuilder {
 		if (!lastRoundCompo) {
 			console.warn('missing compo', tribeCompos);
 			console.log(JSON.stringify(structure, null, 4));
-			return Map.of();
+			return {};
 		}
 		// console.log('lastRoundCompo', lastRoundCompo);
 		const grouped = groupBy(lastRoundCompo, card => card.tribe);
 		// console.log('grouped', grouped);
 		const countByTribe = grouped.map((cards: any[], tribeId: string) => cards.length).toMap();
 		// console.log('countByTribe', countByTribe.toJS());
-		return countByTribe.toJS();
+		return countByTribe;
 	}
 
 	private parseElement(

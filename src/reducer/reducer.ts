@@ -48,16 +48,20 @@ export default async (event): Promise<any> => {
 };
 
 const processReduceEvent = async (reduceEvent: ReduceEvent): Promise<ReduceOutput> => {
-	// console.log('procesing reduce event', reduceEvent);
+	console.log('procesing reduce event', reduceEvent);
 	const fileContents = await Promise.all(
 		reduceEvent.fileKeys.map(fileKey => loadFileContent(fileKey, reduceEvent.bucket)),
 	);
+	console.log('file contents', JSON.stringify(fileContents, null, 4));
 	const reduceOutputs = await Promise.all(fileContents.map(fileContent => toReduceOutput(fileContent)));
-	let reduce: ReduceOutput = {} as ReduceOutput;
+	console.log('reduce outputs', JSON.stringify(reduceOutputs, null, 4));
+	let reduce: ReduceOutput = {
+		output: {},
+	} as ReduceOutput;
 	for (const reduceOutput of reduceOutputs) {
 		reduce = await getImplementation(reduceEvent.implementation).mergeReduceEvents(reduce, reduceOutput);
 	}
-	// console.log('processed event', reduce);
+	console.log('processed event', JSON.stringify(reduce, null, 4));
 	return reduce;
 };
 

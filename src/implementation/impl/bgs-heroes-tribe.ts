@@ -24,7 +24,9 @@ export class BgsHeroesTribe implements Implementation {
 		}
 
 		// By tribe, the total number of minions
-		const tribesAtEndOfGame = await new BgsTribesBuilder().buidTribesAtEndGame(replay, replayXml);
+		const tribesAtEndOfGame = new BgsTribesBuilder().buidTribesAtEndGame(replay, replayXml);
+		delete tribesAtEndOfGame[Race.ALL];
+		console.log('tribes at the end', tribesAtEndOfGame);
 		return {
 			[miniReview.playerCardId]: {
 				tribesAtEndOfGame: tribesAtEndOfGame,
