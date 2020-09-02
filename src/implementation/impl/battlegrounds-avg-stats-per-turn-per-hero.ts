@@ -3,19 +3,18 @@ import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { Map } from 'immutable';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
-import { getConnection } from '../../mr-lambda-common/services/rds';
 import { getConnection as getConnectionBgs } from '../../mr-lambda-common/services/rds-bgs';
+import { http } from '../../mr-lambda-common/services/utils';
 import { Implementation } from '../implementation';
+import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
 import { BgsCompsBuilder } from './details/bgs-comps-builder';
 import { HeroStatsProfile } from './details/hero-stats-profile';
 
 export class BgsAvgStatsPerTurnPerHero implements Implementation {
+	private readonly JOB_NAME = 'bgs-avg-stats-per-turn-per-hero';
+
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
-		const mysql = await getConnection();
-		// SELECT reviewId FROM replay_summary WHERE gameMode = 'battlegrounds' AND buildNumber = 42174 AND playerCardId like 'TB_BaconShop_HERO_%'
-		const dbResults: any[] = await mysql.query(query);
-		const result = dbResults.map(result => result.reviewId);
-		return result;
+		return loadBgReviewIds(query, this.JOB_NAME);
 	}
 
 	public async extractMetric(replay: Replay, miniReview: MiniReview, replayXml: string): Promise<any> {
@@ -91,11 +90,39 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 	}
 
 	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
-		const threshold = this.buildThreshold(output);
+		const mergedOutput = await loadMergedOutput(this.JOB_NAME, output, this.mergeReduceEvents);
+		// console.log('final output before merge with previous job data', JSON.stringify(output, null, 4));
+		// const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
+		// const mysql = await getConnection();
+		// const lastJobQuery = `
+		// 	SELECT * FROM mr_job_summary
+		// 	WHERE jobName = '${this.JOB_NAME}'
+		// 	AND relevantPatch = '${lastBattlegroundsPatch}'
+		// 	ORDER BY lastDateRan DESC
+		// 	LIMIT 1
+		// `;
+		// const lastJobData: readonly any[] = await mysql.query(lastJobQuery);
+		// console.log('lastJobData', lastJobData);
+
+		// const lastOutput = lastJobData && lastJobData.length > 0 ? JSON.parse(lastJobData[0].dataAtJobEnd) : {};
+		// console.log('lastOutput', JSON.stringify(lastOutput, null, 4));
+
+		// const mergedOutput = await this.mergeReduceEvents(output, lastOutput);
+		// console.log('transforming merged output', JSON.stringify(mergedOutput, null, 4));
+
+		// const lastDateRan = new Date();
+		// lastDateRan.setHours(0, 0, 0, 0);
+		// const saveQuery = `
+		// 	INSERT INTO mr_job_summary (jobName, lastDateRan, relevantPatch, dataAtJobEnd)
+		// 	VALUES ('${this.JOB_NAME}', '${formatDate(lastDateRan)}', ${lastBattlegroundsPatch}, '${JSON.stringify(mergedOutput)}')
+		// `;
+		// await mysql.query(saveQuery);
+
+		const threshold = this.buildThreshold(mergedOutput);
 		console.log('threshold is', threshold);
 
 		// build the formatted data, which i the diff from average
-		const heroStatsProfile: readonly HeroStatsProfile[] = this.buildHeroStatsProfiles(output, threshold);
+		const heroStatsProfile: readonly HeroStatsProfile[] = this.buildHeroStatsProfiles(mergedOutput, threshold);
 		console.log('heroStatsProfile', heroStatsProfile);
 
 		// Save the data in db
@@ -199,3 +226,9 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 		return threshold;
 	}
 }
+
+const getLastBattlegroundsPatch = async (): Promise<number> => {
+	const patchInfo = await http(`https://static.zerotoheroes.com/hearthstone/data/patches.json`);
+	const structuredPatch = JSON.parse(patchInfo);
+	return structuredPatch.currentBattlegroundsMetaPatch;
+};
