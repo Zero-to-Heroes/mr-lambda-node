@@ -73,7 +73,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-driver
             Events:
@@ -84,14 +84,14 @@ Resources:
                 BgsWarbandStatsTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 51510 as buildNumberr UNION ALL SELECT 53261 UNION ALL SELECT 54613) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 7000 ORDER BY t1.creationDate DESC LIMIT 200000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
-                        Schedule: cron(0 1 */3 * ? *) # Triggers every two days at 1 AM
+                        Input: '{ "jobName": "bgs-avg-stats-per-turn-per-hero", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 51510 as buildNumberr UNION ALL SELECT 53261 UNION ALL SELECT 54613) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 7000 ORDER BY t1.creationDate DESC LIMIT 100000", "implementation": "bgs-avg-stats-per-turn-per-hero" }'
+                        Schedule: cron(0 1 */3 * ? *)
                 # Build tribes
                 BgsTribesStatTrigger:
                     Type: Schedule
                     Properties:
-                        Input: '{ "jobName": "bgs-heroes-tribe", "query": "SELECT reviewId FROM (SELECT * FROM replay_summary INNER JOIN (select 51510 as buildNumberr UNION ALL SELECT 53261 UNION ALL SELECT 54613) as x on replay_summary.buildNumber = x.buildNumberr ) as t1 WHERE t1.gameMode = ''battlegrounds'' AND t1.playerCardId like ''TB_BaconShop_HERO_%'' AND t1.playerRank > 7000 ORDER BY t1.creationDate DESC LIMIT 200000", "implementation": "bgs-heroes-tribe" }'
-                        Schedule: cron(0 3 */3 * ? *) # Triggers every two days at 3 AM
+                        Input: '{ "jobName": "bgs-heroes-tribe", "query": null, "implementation": "bgs-heroes-tribe" }'
+                        Schedule: cron(0 1 2-31/3 * ? *)
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:
@@ -106,7 +106,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-mapper-watcher
             Timeout: 600
@@ -130,7 +130,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-reducer-watcher
             Timeout: 600
@@ -154,7 +154,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-aggregator-watcher
             Timeout: 600
@@ -180,7 +180,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-mapper
             Timeout: 600
@@ -206,7 +206,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-reducer
             Timeout: 600
@@ -231,7 +231,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-aggregator
             Timeout: 600

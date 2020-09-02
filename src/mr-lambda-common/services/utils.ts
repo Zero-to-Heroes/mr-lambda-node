@@ -47,4 +47,11 @@ function groupBy(list, keyGetter): Map<string, any[]> {
 	return map;
 }
 
-export { partitionArray, http, sleep, groupBy };
+function formatDate(today: Date): string {
+	return `${today
+		.toISOString()
+		.slice(0, 19)
+		.replace('T', ' ')}.000000`;
+}
+
+export { partitionArray, http, sleep, groupBy, formatDate };
