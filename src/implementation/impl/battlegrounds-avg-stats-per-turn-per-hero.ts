@@ -4,7 +4,6 @@ import { Map } from 'immutable';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
 import { getConnection as getConnectionBgs } from '../../mr-lambda-common/services/rds-bgs';
-import { http } from '../../mr-lambda-common/services/utils';
 import { Implementation } from '../implementation';
 import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
 import { BgsCompsBuilder } from './details/bgs-comps-builder';
@@ -226,9 +225,3 @@ export class BgsAvgStatsPerTurnPerHero implements Implementation {
 		return threshold;
 	}
 }
-
-const getLastBattlegroundsPatch = async (): Promise<number> => {
-	const patchInfo = await http(`https://static.zerotoheroes.com/hearthstone/data/patches.json`);
-	const structuredPatch = JSON.parse(patchInfo);
-	return structuredPatch.currentBattlegroundsMetaPatch;
-};

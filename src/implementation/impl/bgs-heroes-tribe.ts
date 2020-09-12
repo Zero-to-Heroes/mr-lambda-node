@@ -4,7 +4,6 @@ import { Race } from '@firestone-hs/reference-data';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
 import { getConnection as getConnectionBgs } from '../../mr-lambda-common/services/rds-bgs';
-import { http } from '../../mr-lambda-common/services/utils';
 import { Implementation } from '../implementation';
 import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
 import { BgsTribesBuilder } from './details/bgs-tribes-builder';
@@ -145,9 +144,3 @@ export class BgsHeroesTribe implements Implementation {
 		return mergedOutput;
 	}
 }
-
-const getLastBattlegroundsPatch = async (): Promise<number> => {
-	const patchInfo = await http(`https://static.zerotoheroes.com/hearthstone/data/patches.json`);
-	const structuredPatch = JSON.parse(patchInfo);
-	return structuredPatch.currentBattlegroundsMetaPatch;
-};
