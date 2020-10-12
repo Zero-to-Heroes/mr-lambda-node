@@ -36,7 +36,7 @@ export default async (event): Promise<any> => {
 		} as TriggerWatcherEvent,
 		process.env.SQS_MAPPER_WATCHER_URL,
 	);
-	console.log('sent notification to start reducer watcher');
+	console.log('sent notification to start mapper watcher');
 	return { statusCode: 200, body: '' };
 };
 
