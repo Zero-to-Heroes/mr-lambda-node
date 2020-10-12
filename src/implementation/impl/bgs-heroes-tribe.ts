@@ -32,15 +32,22 @@ export class BgsHeroesTribe implements Implementation {
 		};
 	}
 
-	public async mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput> {
-		if (!currentResult || !currentResult.output) {
+	public async mergeReduceEvents(
+		inputResult: ReduceOutput<any>,
+		newResult: ReduceOutput<any>,
+	): Promise<ReduceOutput<any>> {
+		if (!inputResult || !inputResult.output) {
 			console.log('currentResult is null');
 			return newResult;
 		}
 		if (!newResult || !newResult.output) {
 			console.log('newResult is null');
-			return currentResult;
+			return inputResult;
 		}
+
+		const currentResult = {
+			output: inputResult.output || {},
+		} as ReduceOutput<any>;
 
 		const output = {};
 
@@ -60,7 +67,7 @@ export class BgsHeroesTribe implements Implementation {
 
 		return {
 			output: output,
-		} as ReduceOutput;
+		} as ReduceOutput<any>;
 	}
 
 	private mergeOutputs(currentOutput, newOutput) {
@@ -81,8 +88,10 @@ export class BgsHeroesTribe implements Implementation {
 		return result;
 	}
 
-	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
-		const mergedOutput = await loadMergedOutput(this.JOB_NAME, output, this.mergeReduceEvents);
+	public async transformOutput(output: ReduceOutput<any>): Promise<ReduceOutput<any>> {
+		const mergedOutput = await loadMergedOutput(this.JOB_NAME, output, (currentResult, newResult) =>
+			this.mergeReduceEvents(currentResult, newResult),
+		);
 		// console.log('final output before merge with previous job data', JSON.stringify(output, null, 4));
 		// const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
 		// const mysql = await getConnection();

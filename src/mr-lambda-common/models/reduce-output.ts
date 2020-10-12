@@ -1,4 +1,4 @@
-export interface ReduceOutput {
+export interface ReduceOutput<T> {
 	readonly metadata?: any;
-	readonly output: any;
+	readonly output: T;
 }

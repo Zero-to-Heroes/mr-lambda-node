@@ -3,21 +3,16 @@ import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { BgsAvgStatsPerTurnPerHero } from './impl/battlegrounds-avg-stats-per-turn-per-hero';
 import { BgsHeroesTribe } from './impl/bgs-heroes-tribe';
+import { BgsTurnWinratePerHero } from './impl/bgs-turn-winrate-per-hero';
 import { BuildAiDecklists } from './impl/build-ai-decklists';
+import { BuildCustomQuery } from './impl/build-custom-query';
 
 export interface Implementation {
 	loadReviewIds(query: string): Promise<readonly string[]>;
 	extractMetric(replay: Replay, miniReview: MiniReview, replayXml: string): Promise<any>;
-	mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput>;
-	transformOutput(output: ReduceOutput): Promise<ReduceOutput>;
+	mergeReduceEvents<T>(currentResult: ReduceOutput<T>, newResult: ReduceOutput<T>): Promise<ReduceOutput<T>>;
+	transformOutput<T>(output: ReduceOutput<T>): Promise<ReduceOutput<T>>;
 }
-
-// const currentImplementation: Implementation = new BgsAvgStatsPerTurnPerFinalPosition();
-// const currentImplementation: Implementation = new BgsAvgStatsPerTurn();
-// const currentImplementation: Implementation = new BgsAvgStatsPerTurnPerHero();
-// const currentImplementation: Implementation = new BuildAiDecklists();
-// const currentImplementation: Implementation = new GalakrondDamageToHero();
-// const currentImplementation: Implementation = new GalakrondMinionsKilled();
 
 export const getImplementation = (implementationId: string): Implementation => {
 	switch (implementationId) {
@@ -25,8 +20,12 @@ export const getImplementation = (implementationId: string): Implementation => {
 			return new BgsHeroesTribe();
 		case 'bgs-avg-stats-per-turn-per-hero':
 			return new BgsAvgStatsPerTurnPerHero();
+		case 'bgs-combat-winrate':
+			return new BgsTurnWinratePerHero();
 		case 'ai-decklist':
 			return new BuildAiDecklists();
+		case 'custom-query':
+			return new BuildCustomQuery();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}

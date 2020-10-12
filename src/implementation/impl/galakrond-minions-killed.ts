@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
-import { extractTotalMinionDeaths, PlayerOpponentValues, Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
+import {
+	extractTotalMinionDeaths,
+	PlayerOpponentValues,
+	Replay,
+} from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
 import { getConnection } from '../../mr-lambda-common/services/rds';
@@ -37,7 +41,10 @@ export class GalakrondMinionsKilled implements Implementation {
 		return extractTotalMinionDeaths(replay);
 	}
 
-	public async mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput> {
+	public async mergeReduceEvents(
+		currentResult: ReduceOutput<any>,
+		newResult: ReduceOutput<any>,
+	): Promise<ReduceOutput<any>> {
 		if (!currentResult || !currentResult.output) {
 			console.log('currentResult is null');
 			return newResult;
@@ -51,10 +58,10 @@ export class GalakrondMinionsKilled implements Implementation {
 				player: (currentResult.output.player || 0) + (newResult.output.player || 0),
 				opponent: (currentResult.output.opponent || 0) + (newResult.output.opponent || 0),
 			} as PlayerOpponentValues,
-		} as ReduceOutput;
+		} as ReduceOutput<any>;
 	}
 
-	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
+	public async transformOutput(output: ReduceOutput<any>): Promise<ReduceOutput<any>> {
 		return output;
 	}
 }

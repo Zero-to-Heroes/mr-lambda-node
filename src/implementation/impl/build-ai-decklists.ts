@@ -176,7 +176,10 @@ export class BuildAiDecklists implements Implementation {
 		}
 	}
 
-	public async mergeReduceEvents(currentResult: ReduceOutput, newResult: ReduceOutput): Promise<ReduceOutput> {
+	public async mergeReduceEvents(
+		currentResult: ReduceOutput<any>,
+		newResult: ReduceOutput<any>,
+	): Promise<ReduceOutput<any>> {
 		if (!currentResult) {
 			console.log('currentResult is null');
 			return newResult;
@@ -187,7 +190,7 @@ export class BuildAiDecklists implements Implementation {
 		}
 		return {
 			output: this.mergeOutputs(currentResult.output || [], newResult.output || []),
-		} as ReduceOutput;
+		} as ReduceOutput<any>;
 	}
 
 	private mergeOutputs(firstOutput: readonly Output[], secondOutput: readonly Output[]): readonly Output[] {
@@ -280,7 +283,7 @@ export class BuildAiDecklists implements Implementation {
 		return [cards, totalCardsSeen];
 	}
 
-	public async transformOutput(output: ReduceOutput): Promise<ReduceOutput> {
+	public async transformOutput(output: ReduceOutput<any>): Promise<ReduceOutput<any>> {
 		const cards = new AllCardsService();
 		await cards.initializeCardsDb();
 		console.log(
@@ -300,7 +303,7 @@ export class BuildAiDecklists implements Implementation {
 				numberOfGames: result.map(out => out.numberOfGames).reduce((a, b) => a + b, 0),
 			},
 			output: result,
-		} as ReduceOutput;
+		} as ReduceOutput<any>;
 	}
 
 	private transform(output: Output[], cards: AllCardsService): FinalOutput[] {
