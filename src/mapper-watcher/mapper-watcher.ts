@@ -14,7 +14,7 @@ const REDUCER_FOLDER = 'reducer';
 // Totally arbitrary, could be anything
 const MAPPING_PER_REDUCER = 50;
 const MAX_REDUCERS = 75;
-const MAX_MAPPINGS_PER_REDUCER = 1000;
+const MAX_MAPPINGS_PER_REDUCER = 300;
 
 const sqs = new Sqs();
 const db = new Db();
