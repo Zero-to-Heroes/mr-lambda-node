@@ -40,7 +40,7 @@ export class S3 {
 		// console.log('getting s3 object', key);
 		this.s3.getObject(input, (err, data) => {
 			if (err) {
-				console.warn('could not read s3 object', bucketName, key, err, retriesLeft);
+				// console.warn('could not read s3 object', bucketName, key, err, retriesLeft);
 				setTimeout(() => {
 					this.readContentAsStringInternal(bucketName, key, callback, retriesLeft - 1);
 				}, 3000);

@@ -52,7 +52,7 @@ export default async (event): Promise<any> => {
 				' with ',
 				fileKey,
 				' with contents ',
-				mapOutput,
+				JSON.stringify(mapOutput, null, 4),
 				' to bucket ',
 				mapEvent.bucket,
 			);
