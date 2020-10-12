@@ -4,7 +4,10 @@ import { Element } from 'elementtree';
 import { Map } from 'immutable';
 
 export class BgsCompsBuilder {
-	public async buildCompsByTurn(replay: Replay, replayXml: string): Promise<Map<number, readonly string[]>> {
+	public async buildCompsByTurn(
+		replay: Replay,
+		replayXml: string,
+	): Promise<Map<number, readonly { cardId: string; attack: number; health: number }[]>> {
 		const elementTree = replay.replay;
 		const opponentPlayerElement = elementTree
 			.findall('.//Player')

@@ -1,9 +1,9 @@
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
-import { BgsAvgStatsPerTurnPerHero } from './impl/battlegrounds-avg-stats-per-turn-per-hero';
 import { BgsHeroesTribe } from './impl/bgs-heroes-tribe';
-import { BgsTurnWinratePerHero } from './impl/bgs-turn-winrate-per-hero';
+import { BgsCombatWinrate } from './impl/bgs-turn-winrate-per-hero';
+import { BgsWarbandStats } from './impl/bgs-warband-stats';
 import { BuildAiDecklists } from './impl/build-ai-decklists';
 import { BuildCustomQuery } from './impl/build-custom-query';
 
@@ -18,10 +18,12 @@ export const getImplementation = (implementationId: string): Implementation => {
 	switch (implementationId) {
 		case 'bgs-heroes-tribe':
 			return new BgsHeroesTribe();
-		case 'bgs-avg-stats-per-turn-per-hero':
-			return new BgsAvgStatsPerTurnPerHero();
+		// case 'bgs-avg-stats-per-turn-per-hero':
+		// 	return new BgsAvgStatsPerTurnPerHero();
+		case 'bgs-warband-stats':
+			return new BgsWarbandStats();
 		case 'bgs-combat-winrate':
-			return new BgsTurnWinratePerHero();
+			return new BgsCombatWinrate();
 		case 'ai-decklist':
 			return new BuildAiDecklists();
 		case 'custom-query':
