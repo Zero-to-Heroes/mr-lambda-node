@@ -66,7 +66,17 @@ export class BgsCombatWinrate extends BgsTurnValueBuilder {
 		return winrate;
 	}
 
-	protected getInsertionQuery(values: string): string {
+	protected getInsertionQuery(
+		creationDate: string,
+		sortedValues: {
+			key: string;
+			turn: number;
+			data: number;
+		}[],
+	): string {
+		const values = sortedValues
+			.map(info => `('${creationDate}', '${info.key}', '${info.turn}', '${info.data}')`)
+			.join(',');
 		return `
 			INSERT INTO bgs_hero_combat_winrate
 			(creationDate, heroCardId, turn, winrate)

@@ -1,145 +1,199 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
+import { NumericTurnInfo } from '@firestone-hs/hs-replay-xml-parser/dist/lib/model/numeric-turn-info';
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { BlockType } from '@firestone-hs/reference-data';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
-import { AllCardsService } from '../../mr-lambda-common/services/cards';
-import { getConnection } from '../../mr-lambda-common/services/rds';
-import { groupBy, http } from '../../mr-lambda-common/services/utils';
+import { getConnection as getConnectionBgs } from '../../mr-lambda-common/services/rds-bgs';
 import { Implementation } from '../implementation';
+import { TotalDataTurnInfo } from '../total-data-turn-info';
+import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
 
-export class BuildCustomQuery implements Implementation {
+export abstract class BuildCustomQuery implements Implementation {
+	private jobName = 'bg-damage-per-turn-over-time';
+
+	protected abstract async extractData(
+		replay: Replay,
+		miniReview: MiniReview,
+		replayXml: string,
+	): Promise<readonly TotalDataTurnInfo[]>;
+
+	protected abstract getInsertionQuery(values: string): string;
+
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
-		const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
-		const mysql = await getConnection();
-
-		const defaultQuery = `
-			SELECT reviewId FROM replay_summary
-			WHERE gameMode = 'battlegrounds'
-			AND buildNumber >= ${lastBattlegroundsPatch}
-			AND playerCardId = 'TB_BaconShop_HERO_56'
-			ORDER BY creationDate DESC
-		`;
-		query = query || defaultQuery;
-		console.log('running query', query);
-		const dbResults: any[] = await mysql.query(query);
-		const result = dbResults.map(result => result.reviewId);
-		return result;
+		return loadBgReviewIds(query, this.jobName, 5000);
 	}
 
-	public async extractMetric(replay: Replay, miniReview: MiniReview): Promise<any> {
+	public async extractMetric(replay: Replay, miniReview: MiniReview, replayXml: string): Promise<IntermediaryResult> {
 		if (!replay) {
 			console.warn('empty replay');
 			return null;
 		}
 
-		try {
-			const elementTree = replay.replay;
-			// Also includes opponent, but not an issue
-			const queenOfDragonsEntity = elementTree.find(`.//FullEntity[@cardID='TB_BaconShop_HP_064']`);
-			if (!queenOfDragonsEntity) {
-				console.log('Hero power never triggered, returning');
-				return null;
-			}
-			const entityId = queenOfDragonsEntity.get('id');
-			const heroPowerTriggerBlock = elementTree.find(
-				`.//Block[@entity='${entityId}'][@type="${BlockType.TRIGGER}"]`,
-			);
-			if (!heroPowerTriggerBlock) {
-				console.log('no hero power trigger block');
-				return null;
-			}
-
-			const choices = heroPowerTriggerBlock.findall(`.//Choices`);
-			const choiceOptions = choices.map(choice => choice.findall(`.//Choice`)).reduce((a, b) => a.concat(b), []);
-			if (choiceOptions.length !== 6) {
-				console.warn('invalid set of choice options');
-			}
-			const fullEntities = heroPowerTriggerBlock.findall(`.//FullEntity`);
-			const fullEntitiesInChoices = choiceOptions
-				.map(choice => choice.get('entity'))
-				.map(choiceEntityId => fullEntities.find(entity => entity.get('id') === choiceEntityId));
-
-			const picks = heroPowerTriggerBlock.findall(`.//ChosenEntities`);
-			const pickOptions = picks.map(choice => choice.findall(`.//Choice`)).reduce((a, b) => a.concat(b), []);
-			if (pickOptions.length !== 6) {
-				console.warn('invalid set of pick options');
-			}
-			const fullEntitiesInPicks = pickOptions
-				.map(choice => choice.get('entity'))
-				.map(choiceEntityId => fullEntities.find(entity => entity.get('id') === choiceEntityId));
-
-			const output = {
-				choices: choiceOptions.map(choice =>
-					fullEntitiesInChoices.find(entity => entity.get('id') === choice.get('entity')).get('cardID'),
-				),
-				picks: pickOptions.map(choice =>
-					fullEntitiesInPicks.find(entity => entity.get('id') === choice.get('entity')).get('cardID'),
-				),
-			};
-			console.log('output', JSON.stringify(output));
-			return output;
-		} catch (e) {
-			console.error('error while parsing', e, miniReview);
-			return null;
-		}
+		const data: readonly TotalDataTurnInfo[] = await this.extractData(replay, miniReview, replayXml);
+		const result = {
+			[miniReview.playerCardId]: {
+				data: data,
+			},
+		} as IntermediaryResult;
+		return result;
 	}
 
-	public async mergeReduceEvents(
-		currentResult: ReduceOutput<any>,
-		newResult: ReduceOutput<any>,
-	): Promise<ReduceOutput<any>> {
-		if (!currentResult) {
-			console.log('currentResult is null');
+	public async mergeReduceEvents<IntermediaryResult>(
+		inputResult: ReduceOutput<IntermediaryResult>,
+		newResult: ReduceOutput<IntermediaryResult>,
+	): Promise<ReduceOutput<IntermediaryResult>> {
+		if (!inputResult || !inputResult.output) {
+			console.log('currentResult is null', JSON.stringify(newResult, null, 4));
 			return newResult;
 		}
-		if (!newResult) {
-			console.log('newResult is null');
-			return currentResult;
+		if (!newResult || !newResult.output) {
+			console.log('newResult is null', JSON.stringify(inputResult, null, 4));
+			return inputResult;
 		}
+
+		const currentResult = {
+			output: inputResult.output || {},
+		} as ReduceOutput<IntermediaryResult>;
+
+		const output: IntermediaryResult = {} as IntermediaryResult;
+
+		// console.log('will merge', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
+		const existingCurrentResultKeys = Object.keys(currentResult.output);
+		for (const playerCardId of existingCurrentResultKeys) {
+			// console.log('merging', playerCardId, currentResult.output[playerCardId], newResult.output[playerCardId]);
+			output[playerCardId] = {
+				data: this.mergeOutputs(
+					currentResult.output[playerCardId]?.data || [],
+					newResult.output[playerCardId]?.data || [],
+				),
+			};
+			// console.log('merged', output[playerCardId]);
+		}
+
+		// Might do the same thing twice, but it's clearer that way
+		for (const playerCardId of Object.keys(newResult.output)) {
+			if (existingCurrentResultKeys.includes(playerCardId)) {
+				continue;
+			}
+			output[playerCardId] = {
+				data: this.mergeOutputs(
+					newResult.output[playerCardId]?.data || [],
+					currentResult.output[playerCardId]?.data || [],
+				),
+			};
+		}
+
 		return {
-			output: this.mergeOutputs(currentResult.output || [], newResult.output || []),
-		} as ReduceOutput<any>;
+			output: output,
+		} as ReduceOutput<IntermediaryResult>;
 	}
 
-	private mergeOutputs(firstOutput, secondOutput): any {
-		console.log('merging outputs', firstOutput, secondOutput);
-		const result = {
-			choices: (firstOutput.choices || []).concat(secondOutput.choices || []),
-			picks: (firstOutput.picks || []).concat(secondOutput.picks || []),
-		};
-		console.log('result is', result);
+	private mergeOutputs(
+		currentOutput: readonly TotalDataTurnInfo[],
+		newOutput: readonly TotalDataTurnInfo[],
+	): readonly TotalDataTurnInfo[] {
+		const highestTurn: number = Math.max(
+			currentOutput && currentOutput.length > 0 ? currentOutput[currentOutput.length - 1].turn : 0,
+			newOutput && newOutput.length > 0 ? newOutput[newOutput.length - 1].turn : 0,
+		);
+		const result: TotalDataTurnInfo[] = [];
+		for (let i = 0; i <= highestTurn; i++) {
+			const currentTurn: TotalDataTurnInfo = (currentOutput && currentOutput.find(info => info.turn === i)) || {
+				turn: i,
+				totalDataPoints: 0,
+				totalValue: 0,
+			};
+			const newTurn: TotalDataTurnInfo = (newOutput && newOutput.find(info => info.turn === i)) || {
+				turn: i,
+				totalDataPoints: 0,
+				totalValue: 0,
+			};
+			result.push({
+				turn: i,
+				totalDataPoints: currentTurn.totalDataPoints + newTurn.totalDataPoints,
+				totalValue: currentTurn.totalValue + newTurn.totalValue,
+			});
+		}
 		return result;
 	}
 
-	public async transformOutput(output: ReduceOutput<any>): Promise<ReduceOutput<any>> {
-		const cards = new AllCardsService();
-		await cards.initializeCardsDb();
-		console.log('transforming output', output);
-		const result = {
-			output: {
-				choices: merge(output.output.choices),
-				picks: merge(output.output.picks),
-			},
+	public async transformOutput<IntermediaryResult>(
+		output: ReduceOutput<IntermediaryResult>,
+	): Promise<ReduceOutput<IntermediaryResult>> {
+		console.log('transforming output', JSON.stringify(output, null, 4));
+		const mergedOutput: ReduceOutput<IntermediaryResult> = await loadMergedOutput(
+			this.jobName,
+			output,
+			(currentResult, newResult) => this.mergeReduceEvents(currentResult, newResult),
+		);
+		console.log('merged output', JSON.stringify(mergedOutput, null, 4));
+
+		const normalizedValues: IntermediaryResult = {} as IntermediaryResult;
+		for (const playerCardId of Object.keys(mergedOutput.output)) {
+			// console.log('normalizing', playerCardId, mergedOutput.output[playerCardId]);
+			normalizedValues[playerCardId] = this.normalize(mergedOutput.output[playerCardId]);
+		}
+		console.log('normalized ', JSON.stringify(normalizedValues, null, 4));
+
+		const mysqlBgs = await getConnectionBgs();
+		const creationDate = new Date().toISOString();
+		const values = Object.keys(normalizedValues)
+			.map(playerCardId => {
+				const playerInfo: NormalizedIntermediaryResultForPlayer = normalizedValues[playerCardId];
+				const playerData: readonly NumericTurnInfo[] = playerInfo.data;
+				return playerData.map(info => ({
+					cardId: playerCardId,
+					turn: info.turn,
+					data: info.value,
+				}));
+			})
+			.reduce((a, b) => a.concat(b), [])
+			.sort((a, b) => {
+				if (a.cardId < b.cardId) {
+					return -1;
+				}
+				if (a.cardId > b.cardId) {
+					return 1;
+				}
+				if (a.turn < b.turn) {
+					return -1;
+				}
+				return 1;
+			})
+			.map(info => `('${creationDate}', '${info.cardId}', '${info.turn}', '${info.data}')`)
+			.join(',');
+		const query = this.getInsertionQuery(values);
+		console.log('running query', query);
+		await mysqlBgs.query(query);
+		console.log('query run');
+
+		return mergedOutput;
+	}
+
+	protected getTotalDataPointsThreshold() {
+		return 0;
+	}
+
+	private normalize(infoForPlayer: IntermediaryResultForPlayer): NormalizedIntermediaryResultForPlayer {
+		return {
+			data: infoForPlayer.data
+				.filter(info => info.totalDataPoints > this.getTotalDataPointsThreshold())
+				.map(info => ({
+					turn: info.turn,
+					value: info.totalDataPoints > 0 ? info.totalValue / info.totalDataPoints : 0,
+				})),
 		};
-		console.log('final result', result);
-		return result;
 	}
 }
 
-const merge = (values: readonly string[]): any => {
-	const mergedChoices = groupBy(values, cardId => cardId);
-	console.log('mergedChoices', mergedChoices);
-	const consolidatedChoices = mergedChoices.map((value, key) => value.length);
-	const finalChoices = {};
-	consolidatedChoices.keySeq().forEach(cardId => {
-		finalChoices[cardId] = consolidatedChoices.get(cardId);
-	});
-	return finalChoices;
-};
+interface IntermediaryResult {
+	[playerCardId: string]: IntermediaryResultForPlayer;
+}
 
-export const getLastBattlegroundsPatch = async (): Promise<number> => {
-	const patchInfo = await http(`https://static.zerotoheroes.com/hearthstone/data/patches.json`);
-	const structuredPatch = JSON.parse(patchInfo);
-	return structuredPatch.currentBattlegroundsMetaPatch;
-};
+interface IntermediaryResultForPlayer {
+	data: readonly TotalDataTurnInfo[];
+}
+
+interface NormalizedIntermediaryResultForPlayer {
+	data: readonly NumericTurnInfo[];
+}

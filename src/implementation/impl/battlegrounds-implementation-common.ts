@@ -3,7 +3,12 @@ import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
 import { getConnection } from '../../mr-lambda-common/services/rds';
 import { formatDate, http } from '../../mr-lambda-common/services/utils';
 
-export const loadBgReviewIds = async (query: string, jobName: string, limit = 100000): Promise<readonly string[]> => {
+export const loadBgReviewIds = async (
+	query: string,
+	jobName: string,
+	limit = 100000,
+	lastPatch?: number,
+): Promise<readonly string[]> => {
 	const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
 	const mysql = await getConnection();
 	const lastJobQuery = `
@@ -30,9 +35,8 @@ export const loadBgReviewIds = async (query: string, jobName: string, limit = 10
 	const defaultQuery = `
 		SELECT reviewId FROM replay_summary
 		WHERE gameMode = 'battlegrounds'
-		AND buildNumber >= ${lastBattlegroundsPatch}
+		AND buildNumber >= ${lastPatch ?? lastBattlegroundsPatch}
 		AND playerCardId like 'TB_BaconShop_HERO_%'
-		AND playerRank > 4000
 		${startDateStatemenet}
 		AND creationDate <= '${formattedEndDate}'
 		ORDER BY creationDate DESC

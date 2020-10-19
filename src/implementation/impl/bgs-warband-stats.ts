@@ -42,7 +42,17 @@ export class BgsWarbandStats extends BgsTurnValueBuilder {
 		return 20;
 	}
 
-	protected getInsertionQuery(values: string): string {
+	protected getInsertionQuery(
+		creationDate: string,
+		sortedValues: {
+			key: string;
+			turn: number;
+			data: number;
+		}[],
+	): string {
+		const values = sortedValues
+			.map(info => `('${creationDate}', '${info.key}', '${info.turn}', '${info.data}')`)
+			.join(',');
 		return `
 			INSERT INTO bgs_hero_warband_stats_2
 			(creationDate, heroCardId, turn, totalStats)

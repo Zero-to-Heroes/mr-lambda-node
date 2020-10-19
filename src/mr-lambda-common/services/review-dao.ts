@@ -20,6 +20,7 @@ export class ReviewDao {
 					playerCardId: review.playerCardId,
 					replayKey: review.replayKey,
 					additionalResult: review.additionalResult,
+					creationDate: review.creationDate,
 			  } as MiniReview)
 			: null;
 	}

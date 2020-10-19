@@ -4,4 +4,5 @@ export interface MiniReview {
 	readonly replayKey: string;
 	readonly playerCardId: string;
 	readonly additionalResult: string;
+	readonly creationDate: Date;
 }

@@ -5,7 +5,7 @@ import { BgsHeroesTribe } from './impl/bgs-heroes-tribe';
 import { BgsCombatWinrate } from './impl/bgs-turn-winrate-per-hero';
 import { BgsWarbandStats } from './impl/bgs-warband-stats';
 import { BuildAiDecklists } from './impl/build-ai-decklists';
-import { BuildCustomQuery } from './impl/build-custom-query';
+import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
 
 export interface Implementation {
 	loadReviewIds(query: string): Promise<readonly string[]>;
@@ -18,16 +18,14 @@ export const getImplementation = (implementationId: string): Implementation => {
 	switch (implementationId) {
 		case 'bgs-heroes-tribe':
 			return new BgsHeroesTribe();
-		// case 'bgs-avg-stats-per-turn-per-hero':
-		// 	return new BgsAvgStatsPerTurnPerHero();
 		case 'bgs-warband-stats':
 			return new BgsWarbandStats();
 		case 'bgs-combat-winrate':
 			return new BgsCombatWinrate();
 		case 'ai-decklist':
 			return new BuildAiDecklists();
-		case 'custom-query':
-			return new BuildCustomQuery();
+		case 'warband-stats-over-time':
+			return new BgsWarbandStatsOverTime();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}

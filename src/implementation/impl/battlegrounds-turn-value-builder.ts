@@ -9,7 +9,16 @@ import { TotalDataTurnInfo } from '../total-data-turn-info';
 import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
 
 export abstract class BgsTurnValueBuilder implements Implementation {
-	constructor(protected readonly jobName: string) {}
+	private groupingKeyExtractor: (miniReview: MiniReview) => string;
+
+	constructor(
+		protected readonly jobName: string,
+		protected readonly reviewLimit: number = 50000,
+		groupingKey?: (miniReview: MiniReview) => string,
+		protected readonly firstPatch?: number,
+	) {
+		this.groupingKeyExtractor = groupingKey ?? ((miniReview: MiniReview) => miniReview.playerCardId);
+	}
 
 	protected abstract async extractData(
 		replay: Replay,
@@ -17,10 +26,17 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 		replayXml: string,
 	): Promise<readonly TotalDataTurnInfo[]>;
 
-	protected abstract getInsertionQuery(values: string): string;
+	protected abstract getInsertionQuery(
+		creationDate: string,
+		sortedValues: {
+			key: string;
+			turn: number;
+			data: number;
+		}[],
+	): string;
 
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
-		return loadBgReviewIds(query, this.jobName, 50000);
+		return loadBgReviewIds(query, this.jobName, this.reviewLimit, this.firstPatch);
 	}
 
 	public async extractMetric(replay: Replay, miniReview: MiniReview, replayXml: string): Promise<IntermediaryResult> {
@@ -30,8 +46,9 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 		}
 
 		const data: readonly TotalDataTurnInfo[] = await this.extractData(replay, miniReview, replayXml);
+		const key = this.groupingKeyExtractor(miniReview);
 		const result = {
-			[miniReview.playerCardId]: {
+			[key]: {
 				data: data,
 			},
 		} as IntermediaryResult;
@@ -59,27 +76,21 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 
 		// console.log('will merge', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
 		const existingCurrentResultKeys = Object.keys(currentResult.output);
-		for (const playerCardId of existingCurrentResultKeys) {
+		for (const key of existingCurrentResultKeys) {
 			// console.log('merging', playerCardId, currentResult.output[playerCardId], newResult.output[playerCardId]);
-			output[playerCardId] = {
-				data: this.mergeOutputs(
-					currentResult.output[playerCardId]?.data || [],
-					newResult.output[playerCardId]?.data || [],
-				),
+			output[key] = {
+				data: this.mergeOutputs(currentResult.output[key]?.data || [], newResult.output[key]?.data || []),
 			};
 			// console.log('merged', output[playerCardId]);
 		}
 
 		// Might do the same thing twice, but it's clearer that way
-		for (const playerCardId of Object.keys(newResult.output)) {
-			if (existingCurrentResultKeys.includes(playerCardId)) {
+		for (const key of Object.keys(newResult.output)) {
+			if (existingCurrentResultKeys.includes(key)) {
 				continue;
 			}
-			output[playerCardId] = {
-				data: this.mergeOutputs(
-					newResult.output[playerCardId]?.data || [],
-					currentResult.output[playerCardId]?.data || [],
-				),
+			output[key] = {
+				data: this.mergeOutputs(newResult.output[key]?.data || [], currentResult.output[key]?.data || []),
 			};
 		}
 
@@ -120,7 +131,7 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 	public async transformOutput<IntermediaryResult>(
 		output: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
-		console.log('transforming output', JSON.stringify(output, null, 4));
+		// console.log('transforming output', JSON.stringify(output, null, 4));
 		const mergedOutput: ReduceOutput<IntermediaryResult> = await loadMergedOutput(
 			this.jobName,
 			output,
@@ -129,43 +140,43 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 		console.log('merged output', JSON.stringify(mergedOutput, null, 4));
 
 		const normalizedValues: IntermediaryResult = {} as IntermediaryResult;
-		for (const playerCardId of Object.keys(mergedOutput.output)) {
+		for (const key of Object.keys(mergedOutput.output)) {
 			// console.log('normalizing', playerCardId, mergedOutput.output[playerCardId]);
-			normalizedValues[playerCardId] = this.normalize(mergedOutput.output[playerCardId]);
+			normalizedValues[key] = this.normalize(mergedOutput.output[key]);
 		}
 		console.log('normalized ', JSON.stringify(normalizedValues, null, 4));
 
 		const mysqlBgs = await getConnectionBgs();
 		const creationDate = new Date().toISOString();
-		const values = Object.keys(normalizedValues)
-			.map(playerCardId => {
-				const playerInfo: NormalizedIntermediaryResultForPlayer = normalizedValues[playerCardId];
+		const sortedValues = Object.keys(normalizedValues)
+			.map(key => {
+				const playerInfo: NormalizedIntermediaryResultForKey = normalizedValues[key];
 				const playerData: readonly NumericTurnInfo[] = playerInfo.data;
 				return playerData.map(info => ({
-					cardId: playerCardId,
+					key: key,
 					turn: info.turn,
 					data: info.value,
 				}));
 			})
 			.reduce((a, b) => a.concat(b), [])
 			.sort((a, b) => {
-				if (a.cardId < b.cardId) {
+				if (a.key < b.key) {
 					return -1;
 				}
-				if (a.cardId > b.cardId) {
+				if (a.key > b.key) {
 					return 1;
 				}
 				if (a.turn < b.turn) {
 					return -1;
 				}
 				return 1;
-			})
-			.map(info => `('${creationDate}', '${info.cardId}', '${info.turn}', '${info.data}')`)
-			.join(',');
-		const query = this.getInsertionQuery(values);
-		console.log('running query', query);
-		await mysqlBgs.query(query);
-		console.log('query run');
+			});
+		const query = this.getInsertionQuery(creationDate, sortedValues);
+		if (query) {
+			console.log('running query', query);
+			await mysqlBgs.query(query);
+			console.log('query run');
+		}
 
 		return mergedOutput;
 	}
@@ -174,9 +185,9 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 		return 0;
 	}
 
-	private normalize(infoForPlayer: IntermediaryResultForPlayer): NormalizedIntermediaryResultForPlayer {
+	private normalize(infoForKey: IntermediaryResultForKey): NormalizedIntermediaryResultForKey {
 		return {
-			data: infoForPlayer.data
+			data: infoForKey.data
 				.filter(info => info.totalDataPoints > this.getTotalDataPointsThreshold())
 				.map(info => ({
 					turn: info.turn,
@@ -187,13 +198,13 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 }
 
 interface IntermediaryResult {
-	[playerCardId: string]: IntermediaryResultForPlayer;
+	[playerCardId: string]: IntermediaryResultForKey;
 }
 
-interface IntermediaryResultForPlayer {
+interface IntermediaryResultForKey {
 	data: readonly TotalDataTurnInfo[];
 }
 
-interface NormalizedIntermediaryResultForPlayer {
+interface NormalizedIntermediaryResultForKey {
 	data: readonly NumericTurnInfo[];
 }
