@@ -98,6 +98,12 @@ Resources:
                     Properties:
                         Input: '{ "jobName": "bgs-combat-winrate", "query": null, "implementation": "bgs-combat-winrate" }'
                         Schedule: cron(0 1 3-31/3 * ? *)
+                # Build duels treasure winrates
+                DuelsTreasureTrigger:
+                    Type: Schedule
+                    Properties:
+                        Input: '{ "jobName": "duels-treasure", "query": null, "implementation": "duels-treasure" }'
+                        Schedule: cron(0 4 3-31/3 * ? *)
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:

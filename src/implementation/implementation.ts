@@ -6,6 +6,7 @@ import { BgsCombatWinrate } from './impl/bgs-turn-winrate-per-hero';
 import { BgsWarbandStats } from './impl/bgs-warband-stats';
 import { BuildAiDecklists } from './impl/build-ai-decklists';
 import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
+import { DuelsTreasures } from './impl/duels-treasures';
 
 export interface Implementation {
 	loadReviewIds(query: string): Promise<readonly string[]>;
@@ -22,6 +23,8 @@ export const getImplementation = (implementationId: string): Implementation => {
 			return new BgsWarbandStats();
 		case 'bgs-combat-winrate':
 			return new BgsCombatWinrate();
+		case 'duels-treasure':
+			return new DuelsTreasures();
 		case 'ai-decklist':
 			return new BuildAiDecklists();
 		case 'warband-stats-over-time':

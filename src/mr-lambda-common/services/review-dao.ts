@@ -16,11 +16,14 @@ export class ReviewDao {
 		return review
 			? ({
 					id: review.reviewId,
+					result: review.result,
 					userId: review.userId,
 					playerCardId: review.playerCardId,
 					replayKey: review.replayKey,
 					additionalResult: review.additionalResult,
 					creationDate: review.creationDate,
+					playerDecklist: review.playerDecklist,
+					playerClass: review.playerClass,
 			  } as MiniReview)
 			: null;
 	}
