@@ -1,6 +1,7 @@
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
+import { BattlegroundsGroupedQueries } from './impl/bgs-grouped/battlegrounds-grouped-queries';
 import { BgsHeroesTribe } from './impl/bgs-heroes-tribe';
 import { BgsCombatWinrate } from './impl/bgs-turn-winrate-per-hero';
 import { BgsWarbandStats } from './impl/bgs-warband-stats';
@@ -23,6 +24,8 @@ export const getImplementation = (implementationId: string): Implementation => {
 			return new BgsWarbandStats();
 		case 'bgs-combat-winrate':
 			return new BgsCombatWinrate();
+		case 'bgs-grouped-queries':
+			return new BattlegroundsGroupedQueries();
 		case 'duels-treasure':
 			return new DuelsTreasures();
 		case 'ai-decklist':

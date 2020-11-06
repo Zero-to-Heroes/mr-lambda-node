@@ -5,7 +5,7 @@ import { Map } from 'immutable';
 import { groupBy } from '../../../mr-lambda-common/services/utils';
 
 export class BgsTribesBuilder {
-	public buidTribesAtEndGame(replay: Replay, replayXml: string): { [tribeId: number]: number } {
+	public buidTribesAtEndGame(replay: Replay, replayXml: string): { [tribeId: string]: number } {
 		const elementTree = replay.replay;
 		const opponentPlayerElement = elementTree
 			.findall('.//Player')
@@ -28,12 +28,12 @@ export class BgsTribesBuilder {
 			console.log(JSON.stringify(structure, null, 4));
 			return {};
 		}
-		// console.log('lastRoundCompo', lastRoundCompo);
+		console.log('lastRoundCompo', lastRoundCompo);
 		const grouped = groupBy(lastRoundCompo, card => card.tribe);
 		// console.log('grouped', grouped);
 		const countByTribe = grouped.map((cards: any[], tribeId: string) => cards.length).toMap();
-		// console.log('countByTribe', countByTribe.toJS());
-		return countByTribe;
+		console.log('countByTribe', countByTribe.toJS());
+		return countByTribe.toJS();
 	}
 
 	private parseElement(
@@ -50,8 +50,11 @@ export class BgsTribesBuilder {
 				zone: parseInt(element.find(`.Tag[@tag='${GameTag.ZONE}']`)?.get('value') || '-1'),
 				zonePosition: parseInt(element.find(`.Tag[@tag='${GameTag.ZONE_POSITION}']`)?.get('value') || '-1'),
 				cardType: parseInt(element.find(`.Tag[@tag='${GameTag.CARDTYPE}']`)?.get('value') || '-1'),
-				tribe: parseInt(element.find(`.Tag[@tag='${GameTag.CARDRACE}']`)?.get('value') || '-1'),
+				tribe: parseInt(element.find(`.Tag[@tag='${GameTag.CARDRACE}']`)?.get('value') || '25'),
 			};
+			// if (structure.entities[element.get('id')].tribe == '-1') {
+			// 	console.warn('invalid tribe', element);
+			// }
 		}
 		if (element.tag === 'TagChange') {
 			if (structure.entities[element.get('entity')]) {
@@ -82,7 +85,13 @@ export class BgsTribesBuilder {
 						.map(entity => ({
 							cardId: entity.cardId,
 							tribe: entity.tribe,
+							initialElement: entity.initialElement,
 						}));
+					// playerEntitiesOnBoard.forEach(minion => {
+					// 	if (minion.tribe == '-1') {
+					// 		console.log('minion with invalid tribe', minion.cardId, minion.initialElement);
+					// 	}
+					// });
 					// console.log(
 					// 	'emitting new turn values',
 					// 	structure.currentTurn,

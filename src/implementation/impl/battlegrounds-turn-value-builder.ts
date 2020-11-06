@@ -68,35 +68,49 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 			return inputResult;
 		}
 
-		const currentResult = {
-			output: inputResult.output || {},
+		const output = await this.mergeIntermediaryResults(inputResult.output, newResult.output);
+
+		return {
+			output: output,
 		} as ReduceOutput<IntermediaryResult>;
+	}
+
+	public async mergeIntermediaryResults<IntermediaryResult>(
+		inputResult: IntermediaryResult,
+		newResult: IntermediaryResult,
+	): Promise<IntermediaryResult> {
+		if (!inputResult) {
+			console.log('currentResult is null', JSON.stringify(newResult, null, 4));
+			return newResult;
+		}
+		if (!newResult) {
+			console.log('newResult is null', JSON.stringify(inputResult, null, 4));
+			return inputResult;
+		}
 
 		const output: IntermediaryResult = {} as IntermediaryResult;
 
 		// console.log('will merge', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
-		const existingCurrentResultKeys = Object.keys(currentResult.output);
+		const existingCurrentResultKeys = Object.keys(inputResult);
 		for (const key of existingCurrentResultKeys) {
 			// console.log('merging', playerCardId, currentResult.output[playerCardId], newResult.output[playerCardId]);
 			output[key] = {
-				data: this.mergeOutputs(currentResult.output[key]?.data || [], newResult.output[key]?.data || []),
+				data: this.mergeOutputs(inputResult[key]?.data || [], newResult[key]?.data || []),
 			};
 			// console.log('merged', output[playerCardId]);
 		}
 
 		// Might do the same thing twice, but it's clearer that way
-		for (const key of Object.keys(newResult.output)) {
+		for (const key of Object.keys(newResult)) {
 			if (existingCurrentResultKeys.includes(key)) {
 				continue;
 			}
 			output[key] = {
-				data: this.mergeOutputs(newResult.output[key]?.data || [], currentResult.output[key]?.data || []),
+				data: this.mergeOutputs(newResult[key]?.data || [], inputResult[key]?.data || []),
 			};
 		}
 
-		return {
-			output: output,
-		} as ReduceOutput<IntermediaryResult>;
+		return output;
 	}
 
 	private mergeOutputs(

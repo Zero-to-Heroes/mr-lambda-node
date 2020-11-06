@@ -81,23 +81,23 @@ Resources:
                 # Query are super complicated in order to benefit from the SQL optimization when running JOIN queries, which
                 # are not present when using the IN clause
                 # See the tests_for_in_clause.sql dev script
-                BgsWarbandStatsTrigger:
-                    Type: Schedule
-                    Properties:
-                        Input: '{ "jobName": "bgs-warband-stats", "query": null, "implementation": "bgs-warband-stats" }'
-                        Schedule: cron(0 1 */3 * ? *)
-                # Build tribes
-                BgsTribesStatTrigger:
-                    Type: Schedule
-                    Properties:
-                        Input: '{ "jobName": "bgs-heroes-tribe", "query": null, "implementation": "bgs-heroes-tribe" }'
-                        Schedule: cron(0 1 2-31/3 * ? *)
-                # Build winrates
-                BgsWinrateTrigger:
-                    Type: Schedule
-                    Properties:
-                        Input: '{ "jobName": "bgs-combat-winrate", "query": null, "implementation": "bgs-combat-winrate" }'
-                        Schedule: cron(0 1 3-31/3 * ? *)
+                # BgsWarbandStatsTrigger:
+                #     Type: Schedule
+                #     Properties:
+                #         Input: '{ "jobName": "bgs-warband-stats", "query": null, "implementation": "bgs-warband-stats" }'
+                #         Schedule: cron(0 1 */3 * ? *)
+                # # Build tribes
+                # BgsTribesStatTrigger:
+                #     Type: Schedule
+                #     Properties:
+                #         Input: '{ "jobName": "bgs-heroes-tribe", "query": null, "implementation": "bgs-heroes-tribe" }'
+                #         Schedule: cron(0 1 2-31/3 * ? *)
+                # # Build winrates
+                # BgsWinrateTrigger:
+                #     Type: Schedule
+                #     Properties:
+                #         Input: '{ "jobName": "bgs-combat-winrate", "query": null, "implementation": "bgs-combat-winrate" }'
+                #         Schedule: cron(0 1 3-31/3 * ? *)
                 # Build duels treasure winrates
                 DuelsTreasureTrigger:
                     Type: Schedule

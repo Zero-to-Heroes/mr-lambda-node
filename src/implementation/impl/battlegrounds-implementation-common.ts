@@ -23,13 +23,10 @@ export const loadBgReviewIds = async (
 	console.log('lastJobData', lastJobData && lastJobData.length > 0 && lastJobData[0].lastDateRan);
 
 	const startDate = lastJobData && lastJobData.length > 0 ? lastJobData[0].lastDateRan : null;
-	const startDateStatemenet = startDate ? `AND creationDate >= '${formatDate(startDate)}' ` : '';
+	const startDateStatemenet = ''; // startDate ? `AND creationDate >= '${formatDate(startDate)}' ` : '';
 
-	// We get the data up to the end of the day prior to which the job runs
-	const endDate = new Date();
-	endDate.setHours(0, 0, 0, 0);
-	const formattedEndDate = formatDate(endDate);
-	console.log('will be using dates', startDateStatemenet, formattedEndDate);
+	// const formattedEndDate = formatDate(endDate);
+	console.log('will be using dates', startDateStatemenet);
 
 	// Don't forget: keep only the top 4 in the query
 	const defaultQuery = `
@@ -38,7 +35,6 @@ export const loadBgReviewIds = async (
 		AND buildNumber >= ${lastPatch ?? lastBattlegroundsPatch}
 		AND playerCardId like 'TB_BaconShop_HERO_%'
 		${startDateStatemenet}
-		AND creationDate <= '${formattedEndDate}'
 		ORDER BY creationDate DESC
 		LIMIT ${limit}
 	`;
@@ -76,7 +72,6 @@ export const loadMergedOutput = async <T>(
 	console.log('transforming merged output', JSON.stringify(mergedOutput, null, 4));
 
 	const lastDateRan = new Date();
-	lastDateRan.setHours(0, 0, 0, 0);
 	const saveQuery = `
 		INSERT INTO mr_job_summary (jobName, lastDateRan, relevantPatch, dataAtJobEnd)
 		VALUES ('${jobName}', '${formatDate(lastDateRan)}', ${lastBattlegroundsPatch}, '${JSON.stringify(mergedOutput)}')
