@@ -2,10 +2,8 @@ import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { BattlegroundsGroupedQueries } from './impl/bgs-grouped/battlegrounds-grouped-queries';
-import { BgsHeroesTribe } from './impl/bgs-heroes-tribe';
-import { BgsCombatWinrate } from './impl/bgs-turn-winrate-per-hero';
-import { BgsWarbandStats } from './impl/bgs-warband-stats';
 import { BuildAiDecklists } from './impl/build-ai-decklists';
+import { BgsDmgPerTurnOverTime } from './impl/custom-queries/bgs-damage-per-turn-over-time';
 import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
 import { DuelsTreasures } from './impl/duels-treasures';
 
@@ -18,20 +16,17 @@ export interface Implementation {
 
 export const getImplementation = (implementationId: string): Implementation => {
 	switch (implementationId) {
-		case 'bgs-heroes-tribe':
-			return new BgsHeroesTribe();
-		case 'bgs-warband-stats':
-			return new BgsWarbandStats();
-		case 'bgs-combat-winrate':
-			return new BgsCombatWinrate();
 		case 'bgs-grouped-queries':
 			return new BattlegroundsGroupedQueries();
 		case 'duels-treasure':
 			return new DuelsTreasures();
 		case 'ai-decklist':
 			return new BuildAiDecklists();
+		// custom
 		case 'warband-stats-over-time':
 			return new BgsWarbandStatsOverTime();
+		case 'bgs-dmg-per-turn-over-time':
+			return new BgsDmgPerTurnOverTime();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}

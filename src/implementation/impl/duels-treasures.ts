@@ -133,11 +133,10 @@ export class DuelsTreasures implements Implementation {
 		console.log('lastJobData', lastJobData && lastJobData.length > 0 && lastJobData[0].periodStart);
 
 		const startDate = lastJobData && lastJobData.length > 0 ? lastJobData[0].periodStart : null;
-		const startDateStatemenet = startDate ? `AND t1.creationDate >= '${formatDate(startDate)}' ` : '';
+		const startDateStatemenet = startDate ? `AND creationDate >= '${formatDate(startDate)}' ` : '';
 
 		// We get the data up to the end of the day prior to which the job runs
 		const endDate = new Date();
-		endDate.setHours(0, 0, 0, 0);
 		const formattedEndDate = formatDate(endDate);
 		console.log('will be using dates', startDateStatemenet, formattedEndDate);
 

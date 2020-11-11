@@ -23,7 +23,7 @@ export const loadBgReviewIds = async (
 	console.log('lastJobData', lastJobData && lastJobData.length > 0 && lastJobData[0].lastDateRan);
 
 	const startDate = lastJobData && lastJobData.length > 0 ? lastJobData[0].lastDateRan : null;
-	const startDateStatemenet = ''; // startDate ? `AND creationDate >= '${formatDate(startDate)}' ` : '';
+	const startDateStatemenet = startDate ? `AND creationDate >= '${formatDate(startDate)}' ` : '';
 
 	// const formattedEndDate = formatDate(endDate);
 	console.log('will be using dates', startDateStatemenet);
