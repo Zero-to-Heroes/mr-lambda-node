@@ -3,9 +3,10 @@ import { MiniReview } from '../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { BattlegroundsGroupedQueries } from './impl/bgs-grouped/battlegrounds-grouped-queries';
 import { BuildAiDecklists } from './impl/build-ai-decklists';
+import { CasualDuelsTreasures } from './impl/casual-duels-treasures';
 import { BgsDmgPerTurnOverTime } from './impl/custom-queries/bgs-damage-per-turn-over-time';
 import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
-import { DuelsTreasures } from './impl/duels-treasures';
+import { HeroicDuelsTreasures } from './impl/heroic-duels-treasures';
 
 export interface Implementation {
 	loadReviewIds(query: string): Promise<readonly string[]>;
@@ -18,8 +19,10 @@ export const getImplementation = (implementationId: string): Implementation => {
 	switch (implementationId) {
 		case 'bgs-grouped-queries':
 			return new BattlegroundsGroupedQueries();
-		case 'duels-treasure':
-			return new DuelsTreasures();
+		case 'casual-duels-treasure':
+			return new CasualDuelsTreasures();
+		case 'paid-duels-treasure':
+			return new HeroicDuelsTreasures();
 		case 'ai-decklist':
 			return new BuildAiDecklists();
 		// custom

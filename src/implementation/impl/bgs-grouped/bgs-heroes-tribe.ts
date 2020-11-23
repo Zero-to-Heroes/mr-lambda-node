@@ -51,7 +51,7 @@ export class BgsHeroesTribe {
 		}
 
 		const result: IntermediaryResult = {} as IntermediaryResult;
-		console.log('will merge', inputResult, newResult);
+		// console.log('will merge', inputResult, newResult);
 		const existingCurrentResultKeys = Object.keys(inputResult);
 		for (const key of existingCurrentResultKeys) {
 			result[key] = {
@@ -107,9 +107,9 @@ export class BgsHeroesTribe {
 			.map(playerCardId => {
 				const dataForPlayer: IntermediaryResultForKey = resultToSave[playerCardId];
 				return dataForPlayer.data.map(dataPoint => {
-					console.log('tribeId', dataPoint.tribeId);
+					// console.log('tribeId', dataPoint.tribeId);
 					const tribe = Race[+dataPoint.tribeId];
-					console.log('race', tribe);
+					// console.log('race', tribe);
 					return {
 						periodStart: periodDate,
 						heroCardId: playerCardId,

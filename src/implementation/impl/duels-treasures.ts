@@ -26,9 +26,21 @@ const PLAYER_CLASSES = [
 ];
 
 const TREASURES = [
+	'PVPDR_SCH_Passive19',
+	'PVPDR_SCH_Passive20',
+	'PVPDR_SCH_Passive22',
+	'PVPDR_SCH_Passive23',
+	'PVPDR_SCH_Passive24',
+	'PVPDR_SCH_Passive28',
+	'PVPDR_SCH_Passive30',
+	'PVPDR_SCH_Passive32',
+	'PVPDR_SCH_Passive34',
+	'PVPDR_DMF_Passive01',
+	'PVPDR_DMF_Passive02',
 	'DALA_702',
 	'DALA_705',
 	'DALA_711',
+	'DALA_735',
 	'DALA_736',
 	'DALA_739',
 	'DALA_744',
@@ -54,6 +66,8 @@ const TREASURES = [
 	'NAX11_04',
 	'NAX12_04',
 	'NAX2_05H',
+	'PVPDR_DMF_Passive01',
+	'PVPDR_DMF_Passive02',
 	'PVPDR_SCH_Active01',
 	'PVPDR_SCH_Active02',
 	'PVPDR_SCH_Active03',
@@ -92,6 +106,7 @@ const TREASURES = [
 	'PVPDR_SCH_Active52',
 	'PVPDR_SCH_Active53',
 	'PVPDR_SCH_Active54',
+	'PVPDR_SCH_Active55',
 	'PVPDR_SCH_Active56',
 	'PVPDR_SCH_Active57',
 	'PVPDR_SCH_Active58',
@@ -110,6 +125,15 @@ const TREASURES = [
 	'PVPDR_SCH_Passive15a1',
 	'PVPDR_SCH_Passive16',
 	'PVPDR_SCH_Passive17',
+	'PVPDR_SCH_Passive19',
+	'PVPDR_SCH_Passive20',
+	'PVPDR_SCH_Passive22',
+	'PVPDR_SCH_Passive23',
+	'PVPDR_SCH_Passive24',
+	'PVPDR_SCH_Passive28',
+	'PVPDR_SCH_Passive30',
+	'PVPDR_SCH_Passive32',
+	'PVPDR_SCH_Passive34',
 	'SCH_224t',
 	'ULDA_005',
 	'ULDA_008',
@@ -120,11 +144,14 @@ const TREASURES = [
 	'ULDA_116',
 ];
 
-export class DuelsTreasures implements Implementation {
+export class AbstractDuelsTreasures implements Implementation {
+	constructor(protected readonly gameMode: 'duels' | 'paid-duels') {}
+
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
 		const mysql = await getConnection();
 		const lastJobQuery = `
 			SELECT periodStart FROM duels_stats_treasure_winrate
+			WHERE gameMode = '${this.gameMode}'
 			ORDER BY periodStart DESC
 			LIMIT 1
 		`;
@@ -142,7 +169,7 @@ export class DuelsTreasures implements Implementation {
 
 		const defaultQuery = `
 			SELECT reviewId FROM replay_summary
-			WHERE gameMode = 'duels'
+			WHERE gameMode = '${this.gameMode}'
 			AND playerCardId like 'PVPDR_Hero%'
 			AND playerDecklist IS NOT NULL
 			${startDateStatemenet}
@@ -271,7 +298,7 @@ export class DuelsTreasures implements Implementation {
 	): Promise<ReduceOutput<IntermediaryResult>> {
 		console.log('transforming output', output);
 		const mergedOutput: ReduceOutput<IntermediaryResult> = await loadMergedOutput(
-			'duels-treasures',
+			`${this.gameMode}-treasures`,
 			output,
 			(currentResult, newResult) => this.mergeReduceEvents(currentResult, newResult),
 		);
@@ -300,12 +327,12 @@ export class DuelsTreasures implements Implementation {
 		const values = stats
 			.map(
 				stat =>
-					`('${stat.periodStart}', '${stat.cardId}', '${stat.playerClass}', ${stat.matchesPlayed}, ${stat.totalLosses}, ${stat.totalTies}, ${stat.totalWins})`,
+					`('${this.gameMode}', '${stat.periodStart}', '${stat.cardId}', '${stat.playerClass}', ${stat.matchesPlayed}, ${stat.totalLosses}, ${stat.totalTies}, ${stat.totalWins})`,
 			)
 			.join(',\n');
 		const query = `
 			INSERT INTO duels_stats_treasure_winrate
-			(periodStart, cardId, playerClass, matchesPlayed, totalLosses, totalTies, totalWins)
+			(gameMode, periodStart, cardId, playerClass, matchesPlayed, totalLosses, totalTies, totalWins)
 			VALUES ${values}
 		`;
 		console.log('running db insert query');

@@ -71,15 +71,15 @@ export class BattlegroundsGroupedQueries implements Implementation {
 
 		const output: IntermediaryResult = {} as IntermediaryResult;
 		for (const key of this.allKeys) {
-			console.log('merging', key, currentResult.output[key], newResult.output[key]);
+			// console.log('merging', key, currentResult.output[key], newResult.output[key]);
 			output[key] = await this.getImplementation(key).mergeIntermediaryResults(
 				currentResult.output[key] || [],
 				newResult.output[key] || [],
 			);
-			console.log('merged', output[key]);
+			// console.log('merged', output[key]);
 		}
 
-		console.log('returning', output);
+		// console.log('returning', output);
 		return {
 			output: output,
 		} as ReduceOutput<IntermediaryResult>;
