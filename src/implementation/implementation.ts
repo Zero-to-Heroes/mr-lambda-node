@@ -21,7 +21,7 @@ export const getImplementation = (implementationId: string): Implementation => {
 			return new BattlegroundsGroupedQueries();
 		case 'casual-duels-treasure':
 			return new CasualDuelsTreasures();
-		case 'paid-duels-treasure':
+		case 'heroic-duels-treasure':
 			return new HeroicDuelsTreasures();
 		case 'ai-decklist':
 			return new BuildAiDecklists();

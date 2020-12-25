@@ -34,7 +34,6 @@ export const loadBgReviewIds = async (
 		WHERE gameMode = 'battlegrounds'
 		AND buildNumber >= ${lastPatch ?? lastBattlegroundsPatch}
 		AND playerCardId like 'TB_BaconShop_HERO_%'
-		AND playerRank >= 5000
 		${startDateStatemenet}
 		ORDER BY creationDate DESC
 		LIMIT ${limit}
