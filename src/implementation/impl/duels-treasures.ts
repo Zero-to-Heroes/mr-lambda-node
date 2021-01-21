@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { AllCardsService, CardClass } from '@firestone-hs/reference-data';
+import { AllCardsService, CardClass, CardIds } from '@firestone-hs/reference-data';
 import { decode } from 'deckstrings';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
@@ -142,6 +142,12 @@ const TREASURES = [
 	'ULDA_044',
 	'ULDA_046',
 	'ULDA_116',
+	CardIds.NonCollectible.Neutral.AstralPortalTavernBrawl,
+	CardIds.NonCollectible.Mage.MageArmorTavernBrawl,
+	CardIds.NonCollectible.Neutral.AllShallServeTavernBrawl1,
+	CardIds.NonCollectible.Neutral.DragonbloodTavernBrawl1,
+	CardIds.NonCollectible.Neutral.StarvingTavernBrawl1,
+	CardIds.NonCollectible.Neutral.TheFloorIsLavaTavernBrawl1,
 ];
 
 export class AbstractDuelsTreasures implements Implementation {
