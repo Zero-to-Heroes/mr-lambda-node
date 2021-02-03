@@ -453,7 +453,10 @@ export class BuildAiDecklists implements Implementation {
 		// However it's possible (and likely) that the boss' HP upgrades during a fight
 		// without it having a new decklist, so using the HP would be more brittle
 		if (
-			[3428, 3429, 3430, 3431, 3432, 3438, 3433, 3434, 3435, 3436, 3437, 3439].indexOf(replay.scenarioId) !== -1
+			[3428, 3429, 3430, 3431, 3432, 3438, 3433, 3434, 3435, 3436, 3437, 3439].indexOf(replay.scenarioId) !==
+				-1 ||
+			// BoH Anduin
+			(replay.scenarioId >= 3825 && replay.scenarioId <= 3832)
 		) {
 			return [
 				(entity: Element) => entity.find(`.Tag[@tag='${GameTag.HERO_DECK_ID}']`) != null,
