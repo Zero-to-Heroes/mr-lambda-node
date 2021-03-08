@@ -1,4 +1,4 @@
-import { ReferenceCard } from './reference-card';
+import { ReferenceCard } from '@firestone-hs/reference-data/lib/models/reference-cards/reference-card';
 import { http } from './utils';
 
 export class AllCardsService {

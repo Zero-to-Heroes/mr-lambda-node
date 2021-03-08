@@ -8,7 +8,7 @@ import { Implementation } from '../implementation';
 import { TotalDataTurnInfo } from '../total-data-turn-info';
 import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
 
-export abstract class BgsTurnValueBuilder implements Implementation {
+export abstract class BgsTurnValueBuilder implements Implementation<any> {
 	private groupingKeyExtractor: (miniReview: MiniReview) => string;
 
 	constructor(
@@ -20,7 +20,7 @@ export abstract class BgsTurnValueBuilder implements Implementation {
 		this.groupingKeyExtractor = groupingKey ?? ((miniReview: MiniReview) => miniReview.playerCardId);
 	}
 
-	protected abstract async extractData(
+	protected abstract extractData(
 		replay: Replay,
 		miniReview: MiniReview,
 		replayXml: string,

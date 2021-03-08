@@ -12,7 +12,7 @@ import { BgsWarbandStats } from './bgs-warband-stats';
 
 type SupportedGroups = BgsWarbandStats | BgsCombatWinrate | BgsHeroesTribe;
 
-export class BattlegroundsGroupedQueries implements Implementation {
+export class BattlegroundsGroupedQueries implements Implementation<any> {
 	private implementations: readonly SupportedGroups[];
 	private allKeys: string[];
 	private jobName = 'battlegrounds-grouped-queries';

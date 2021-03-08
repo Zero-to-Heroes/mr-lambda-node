@@ -9,7 +9,7 @@ import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
 import { getConnection } from '../../mr-lambda-common/services/rds';
 import { Implementation } from '../implementation';
 
-export class GalakrondMinionsKilled implements Implementation {
+export class GalakrondMinionsKilled implements Implementation<any> {
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
 		const mysql = await getConnection();
 		// Galakrond's Awakening Normal - Explorers

@@ -20,7 +20,7 @@ export default async (event): Promise<any> => {
 	const jobName: string = event.jobName;
 	const query: string = event.query;
 	const implementation: string = event.implementation;
-	const jobBucketName = jobName + '-' + Date.now();
+	const jobBucketName = jobName + '-' + new Date().toISOString();
 	console.log('starting map/reduce on lambda', jobName);
 	const reviewIds: readonly string[] = await getImplementation(implementation).loadReviewIds(query);
 	console.log('will handle', reviewIds.length, 'reviews');

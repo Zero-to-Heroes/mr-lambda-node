@@ -47,7 +47,7 @@ const TREASURES = [
 	'DALA_746',
 	'FP1_006',
 	'GILA_511',
-	'GILA_801',
+	// 'GILA_801',
 	'GILA_814',
 	'GILA_824',
 	'GILA_825',
@@ -150,7 +150,7 @@ const TREASURES = [
 	CardIds.NonCollectible.Neutral.TheFloorIsLavaTavernBrawl1,
 ];
 
-export class AbstractDuelsTreasures implements Implementation {
+export class AbstractDuelsTreasures implements Implementation<any> {
 	constructor(protected readonly gameMode: 'duels' | 'paid-duels') {}
 
 	public async loadReviewIds(query: string): Promise<readonly string[]> {

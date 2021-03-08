@@ -8,10 +8,10 @@ import { Implementation } from '../implementation';
 import { TotalDataTurnInfo } from '../total-data-turn-info';
 import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
 
-export abstract class BuildCustomQuery implements Implementation {
+export abstract class BuildCustomQuery implements Implementation<any> {
 	private jobName = 'bg-damage-per-turn-over-time';
 
-	protected abstract async extractData(
+	protected abstract extractData(
 		replay: Replay,
 		miniReview: MiniReview,
 		replayXml: string,

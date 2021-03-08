@@ -8,7 +8,7 @@ import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { groupBy, http } from '../../../mr-lambda-common/services/utils';
 import { Implementation } from '../../implementation';
 
-export class BgAlexHpDiscovers implements Implementation {
+export class BgAlexHpDiscovers implements Implementation<any> {
 	public async loadReviewIds(query: string): Promise<readonly string[]> {
 		const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
 		const mysql = await getConnection();

@@ -5,17 +5,18 @@ import { BattlegroundsGroupedQueries } from './impl/bgs-grouped/battlegrounds-gr
 import { BuildAiDecklists } from './impl/build-ai-decklists';
 import { CasualDuelsTreasures } from './impl/casual-duels-treasures';
 import { BgsDmgPerTurnOverTime } from './impl/custom-queries/bgs-damage-per-turn-over-time';
+import { BgsTokenDamage } from './impl/custom-queries/bgs-token-damage';
 import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
 import { HeroicDuelsTreasures } from './impl/heroic-duels-treasures';
 
-export interface Implementation {
+export interface Implementation<T> {
 	loadReviewIds(query: string): Promise<readonly string[]>;
 	extractMetric(replay: Replay, miniReview: MiniReview, replayXml: string): Promise<any>;
-	mergeReduceEvents<T>(currentResult: ReduceOutput<T>, newResult: ReduceOutput<T>): Promise<ReduceOutput<T>>;
-	transformOutput<T>(output: ReduceOutput<T>): Promise<ReduceOutput<T>>;
+	mergeReduceEvents(currentResult: ReduceOutput<T>, newResult: ReduceOutput<T>): Promise<ReduceOutput<T>>;
+	transformOutput(output: ReduceOutput<T>): Promise<ReduceOutput<T>>;
 }
 
-export const getImplementation = (implementationId: string): Implementation => {
+export const getImplementation = (implementationId: string): Implementation<any> => {
 	switch (implementationId) {
 		case 'bgs-grouped-queries':
 			return new BattlegroundsGroupedQueries();
@@ -30,6 +31,8 @@ export const getImplementation = (implementationId: string): Implementation => {
 			return new BgsWarbandStatsOverTime();
 		case 'bgs-dmg-per-turn-over-time':
 			return new BgsDmgPerTurnOverTime();
+		case 'bgs-token-damage':
+			return new BgsTokenDamage();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}
