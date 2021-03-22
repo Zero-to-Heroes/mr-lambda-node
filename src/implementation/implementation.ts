@@ -6,6 +6,7 @@ import { BuildAiDecklists } from './impl/build-ai-decklists';
 import { CasualDuelsTreasures } from './impl/casual-duels-treasures';
 import { BgsDmgPerTurnOverTime } from './impl/custom-queries/bgs-damage-per-turn-over-time';
 import { BgsTokenDamage } from './impl/custom-queries/bgs-token-damage';
+import { BgsTotalBuff } from './impl/custom-queries/bgs-total-buff';
 import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
 import { HeroicDuelsTreasures } from './impl/heroic-duels-treasures';
 
@@ -33,6 +34,8 @@ export const getImplementation = (implementationId: string): Implementation<any>
 			return new BgsDmgPerTurnOverTime();
 		case 'bgs-token-damage':
 			return new BgsTokenDamage();
+		case 'bgs-total-buff':
+			return new BgsTotalBuff();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}
