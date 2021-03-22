@@ -80,6 +80,7 @@ const TREASURES = [
 	'PVPDR_SCH_Active17',
 	'PVPDR_SCH_Active19',
 	'PVPDR_SCH_Active20',
+	'ULDA_043',
 	'PVPDR_SCH_Active21',
 	'PVPDR_SCH_Active23',
 	'PVPDR_SCH_Active24',
