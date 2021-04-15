@@ -33,7 +33,7 @@ export const loadBgReviewIds = async (
 		SELECT reviewId FROM replay_summary
 		WHERE gameMode = 'battlegrounds'
 		AND buildNumber >= ${lastPatch ?? lastBattlegroundsPatch}
-		AND playerCardId like 'TB_BaconShop_HERO_%'
+		AND (playerCardId like 'TB_BaconShop_HERO_%' OR playerCardId like 'BG%')
 		AND playerRank >= 4000
 		${startDateStatemenet}
 		ORDER BY creationDate DESC
