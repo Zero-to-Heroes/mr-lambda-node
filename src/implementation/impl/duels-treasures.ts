@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { AllCardsService, CardClass, CardIds } from '@firestone-hs/reference-data';
+import { AllCardsService, allDuelsTreasureCardIds, CardClass } from '@firestone-hs/reference-data';
 import { decode } from 'deckstrings';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
@@ -23,157 +23,6 @@ const PLAYER_CLASSES = [
 	CardClass[CardClass.SHAMAN].toLowerCase(),
 	CardClass[CardClass.WARLOCK].toLowerCase(),
 	CardClass[CardClass.WARRIOR].toLowerCase(),
-];
-
-const TREASURES = [
-	'PVPDR_SCH_Passive19',
-	'PVPDR_SCH_Passive20',
-	'PVPDR_SCH_Passive22',
-	'PVPDR_SCH_Passive23',
-	'PVPDR_SCH_Passive24',
-	'PVPDR_SCH_Passive28',
-	'PVPDR_SCH_Passive30',
-	'PVPDR_SCH_Passive32',
-	'PVPDR_SCH_Passive34',
-	'PVPDR_DMF_Passive01',
-	'PVPDR_DMF_Passive02',
-	'DALA_702',
-	'DALA_705',
-	'DALA_711',
-	'DALA_735',
-	'DALA_736',
-	'DALA_739',
-	'DALA_744',
-	'DALA_746',
-	'FP1_006',
-	'GILA_511',
-	// 'GILA_801',
-	'GILA_814',
-	'GILA_824',
-	'GILA_825',
-	'GILA_913',
-	'GILA_BOSS_35t',
-	'LOEA_01',
-	'LOOTA_803',
-	'LOOTA_824',
-	'LOOTA_825',
-	'LOOTA_828',
-	'LOOTA_840',
-	'LOOTA_842b',
-	'LOOTA_845',
-	'LOOTA_846',
-	'LOOT_998k',
-	'NAX11_04',
-	'NAX12_04',
-	'NAX2_05H',
-	'PVPDR_DMF_Passive01',
-	'PVPDR_DMF_Passive02',
-	'PVPDR_SCH_Active01',
-	'PVPDR_SCH_Active02',
-	'PVPDR_SCH_Active03',
-	'PVPDR_SCH_Active05',
-	'PVPDR_SCH_Active07',
-	'PVPDR_SCH_Active08',
-	'PVPDR_SCH_Active10',
-	'PVPDR_SCH_Active11',
-	'PVPDR_SCH_Active14',
-	'PVPDR_SCH_Active17',
-	'PVPDR_SCH_Active19',
-	'PVPDR_SCH_Active20',
-	'ULDA_043',
-	'PVPDR_SCH_Active21',
-	'PVPDR_SCH_Active23',
-	'PVPDR_SCH_Active24',
-	'PVPDR_SCH_Active26',
-	'PVPDR_SCH_Active27',
-	'PVPDR_SCH_Active28',
-	'PVPDR_SCH_Active29',
-	'PVPDR_SCH_Active30',
-	'PVPDR_SCH_Active31',
-	'PVPDR_SCH_Active34',
-	'PVPDR_SCH_Active35',
-	'PVPDR_SCH_Active38',
-	'PVPDR_SCH_Active39',
-	'PVPDR_SCH_Active42',
-	'PVPDR_SCH_Active43',
-	'PVPDR_SCH_Active44',
-	'PVPDR_SCH_Active45',
-	'PVPDR_SCH_Active46',
-	'PVPDR_SCH_Active47',
-	'PVPDR_SCH_Active48',
-	'PVPDR_SCH_Active49',
-	'PVPDR_SCH_Active50',
-	'PVPDR_SCH_Active51',
-	'PVPDR_SCH_Active52',
-	'PVPDR_SCH_Active53',
-	'PVPDR_SCH_Active54',
-	'PVPDR_SCH_Active55',
-	'PVPDR_SCH_Active56',
-	'PVPDR_SCH_Active57',
-	'PVPDR_SCH_Active58',
-	'PVPDR_SCH_Active59',
-	'PVPDR_SCH_Active60',
-	'PVPDR_SCH_Active61',
-	'PVPDR_SCH_Passive05',
-	'PVPDR_SCH_Passive06',
-	'PVPDR_SCH_Passive07',
-	'PVPDR_SCH_Passive08',
-	'PVPDR_SCH_Passive09',
-	'PVPDR_SCH_Passive10',
-	'PVPDR_SCH_Passive11',
-	'PVPDR_SCH_Passive12',
-	'PVPDR_SCH_Passive14',
-	'PVPDR_SCH_Passive15a1',
-	'PVPDR_SCH_Passive16',
-	'PVPDR_SCH_Passive17',
-	'PVPDR_SCH_Passive19',
-	'PVPDR_SCH_Passive20',
-	'PVPDR_SCH_Passive22',
-	'PVPDR_SCH_Passive23',
-	'PVPDR_SCH_Passive24',
-	'PVPDR_SCH_Passive28',
-	'PVPDR_SCH_Passive30',
-	'PVPDR_SCH_Passive32',
-	'PVPDR_SCH_Passive34',
-	'SCH_224t',
-	'ULDA_005',
-	'ULDA_008',
-	'ULDA_009',
-	'ULDA_014',
-	'ULDA_044',
-	'ULDA_046',
-	'ULDA_116',
-	CardIds.NonCollectible.Neutral.AstralPortalTavernBrawl,
-	CardIds.NonCollectible.Neutral.MageArmorTavernBrawl,
-	CardIds.NonCollectible.Neutral.AllShallServeTavernBrawl1,
-	CardIds.NonCollectible.Neutral.DragonbloodTavernBrawl1,
-	CardIds.NonCollectible.Neutral.StarvingTavernBrawl1,
-	CardIds.NonCollectible.Neutral.TheFloorIsLavaTavernBrawl1,
-	CardIds.NonCollectible.Neutral.AllTogetherNow,
-	CardIds.NonCollectible.Neutral.RighteousReserves,
-	CardIds.NonCollectible.Neutral.AvengingArmaments1,
-	CardIds.NonCollectible.Neutral.EnduranceTraining,
-	CardIds.NonCollectible.Neutral.HoldTheLine,
-	CardIds.NonCollectible.Neutral.OpenTheDoorways,
-	CardIds.NonCollectible.Neutral.OrbOfRevelation1,
-	CardIds.NonCollectible.Neutral.ConduitOfTheStorms1,
-	CardIds.NonCollectible.Neutral.PotionOfSparking,
-	CardIds.NonCollectible.Neutral.SpecialDelivery,
-	CardIds.NonCollectible.Neutral.MendingPools,
-	CardIds.NonCollectible.Neutral.SpreadingSaplings,
-	CardIds.NonCollectible.Neutral.ArcaniteCrystal,
-	CardIds.NonCollectible.Neutral.ArcaneFlux,
-	CardIds.NonCollectible.Neutral.CorruptedFelstone,
-	CardIds.NonCollectible.Neutral.WitherTheWeak,
-	CardIds.NonCollectible.Neutral.FreezeSolid,
-	CardIds.NonCollectible.Neutral.ArcticArmor,
-	CardIds.NonCollectible.Neutral.FirekeepersIdol,
-	CardIds.NonCollectible.Neutral.FlameWaves,
-	CardIds.NonCollectible.Neutral.InvigoratingLight,
-	CardIds.NonCollectible.Neutral.DivineIllumination,
-	CardIds.NonCollectible.Neutral.EerieStone,
-	CardIds.NonCollectible.Neutral.StaffOfPain,
-	CardIds.NonCollectible.Neutral.RallyTheTroops1,
 ];
 
 export class AbstractDuelsTreasures implements Implementation<any> {
@@ -235,11 +84,11 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 			.reduce((a, b) => a.concat(b), [])
 			.map(cardDbfId => cards.getCardFromDbfId(cardDbfId))
 			.filter(card => card)
-			.filter(card => TREASURES.includes(card.id));
+			.filter(card => allDuelsTreasureCardIds.includes(card.id));
 
 		const result: IntermediaryResult = {};
 		// Init everything to not have to worry about empty structures later on
-		for (const treasureId of TREASURES) {
+		for (const treasureId of allDuelsTreasureCardIds) {
 			result[treasureId] = {} as IntermediaryResultForTreasure;
 			for (const playerClass of PLAYER_CLASSES) {
 				result[treasureId][playerClass] = {
@@ -286,7 +135,7 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 
 		// console.log('will merge events', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
 		console.log('will merge events');
-		for (const treasureId of TREASURES) {
+		for (const treasureId of allDuelsTreasureCardIds) {
 			// console.log('merging', playerCardId, currentResult.output[playerCardId], newResult.output[playerCardId]);
 			output[treasureId] = this.mergeTreasures(
 				currentResult.output[treasureId] || ({} as IntermediaryResultForTreasure),
