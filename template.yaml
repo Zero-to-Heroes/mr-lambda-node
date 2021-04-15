@@ -79,7 +79,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-driver
             Events:
@@ -121,7 +121,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-mapper-watcher
             Timeout: 600
@@ -152,7 +152,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-reducer-watcher
             Timeout: 600
@@ -183,7 +183,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-aggregator-watcher
             Timeout: 600
@@ -216,7 +216,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-mapper
             Timeout: 600
@@ -249,7 +249,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-reducer
             Timeout: 600
@@ -281,7 +281,7 @@ Resources:
                 - AmazonSNSReadOnlyAccess
                 - AmazonSQSFullAccess
                 - AmazonS3FullAccess
-                # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
+                - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-aggregator
             Timeout: 600
