@@ -20,7 +20,6 @@ export class BgsHeroesTribe {
 
 		// By tribe, the total number of minions
 		const data: { [tribeId: string]: number } = new BgsTribesBuilder().buidTribesAtEndGame(replay, replayXml);
-		console.log('build data', data);
 		const dataForProcess: readonly TotalDataTribeInfo[] = Object.keys(data).map(
 			tribeId =>
 				({
@@ -29,7 +28,6 @@ export class BgsHeroesTribe {
 					totalValue: data[tribeId],
 				} as TotalDataTribeInfo),
 		);
-		console.log('tribes at the end', data);
 		return {
 			[miniReview.playerCardId]: {
 				data: dataForProcess,
@@ -42,16 +40,13 @@ export class BgsHeroesTribe {
 		newResult: IntermediaryResult,
 	): Promise<IntermediaryResult> {
 		if (!inputResult) {
-			console.log('currentResult is null');
 			return newResult;
 		}
 		if (!newResult) {
-			console.log('newResult is null');
 			return inputResult;
 		}
 
 		const result: IntermediaryResult = {} as IntermediaryResult;
-		// console.log('will merge', inputResult, newResult);
 		const existingCurrentResultKeys = Object.keys(inputResult);
 		for (const key of existingCurrentResultKeys) {
 			result[key] = {
@@ -102,14 +97,11 @@ export class BgsHeroesTribe {
 	}
 
 	public async saveInDb(periodDate: string, resultToSave: any, mysql) {
-		console.log('will save result', resultToSave);
 		const stats: readonly InfoForDb[] = Object.keys(resultToSave)
 			.map(playerCardId => {
 				const dataForPlayer: IntermediaryResultForKey = resultToSave[playerCardId];
 				return dataForPlayer.data.map(dataPoint => {
-					// console.log('tribeId', dataPoint.tribeId);
 					const tribe = Race[+dataPoint.tribeId];
-					// console.log('race', tribe);
 					return {
 						periodStart: periodDate,
 						heroCardId: playerCardId,
@@ -134,20 +126,17 @@ export class BgsHeroesTribe {
 				}
 				return 1;
 			});
-		console.log('built stats', JSON.stringify(stats, null, 4));
 		const values = stats
 			.map(
 				stat =>
 					`('${stat.periodStart}', '${stat.heroCardId}', '${stat.tribe}', ${stat.dataPoints}, ${stat.totalValue})`,
 			)
 			.join(',');
-		console.log('values', values);
 		const query = `
 			INSERT INTO bgs_tribes_at_end
 			(periodStart, heroCardId, tribe, dataPoints, totalValue)
 			VALUES ${values}
 		`;
-		console.log('running query', query);
 		await mysql.query(query);
 	}
 }

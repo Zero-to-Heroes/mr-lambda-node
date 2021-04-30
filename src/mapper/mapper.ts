@@ -21,11 +21,9 @@ export default async (event, context): Promise<any> => {
 		.reduce((a, b) => a.concat(b), []);
 	// let currentMapEvent = 0;
 	for (const mapEvent of mapEvents) {
-		// console.log('processing map event', mapEvent.reviewIds && mapEvent.reviewIds.length);
 		let currentReviewId = 0;
 		for (const reviewId of mapEvent.reviewIds) {
 			currentReviewId++;
-			console.log('handling', currentReviewId, reviewId);
 			const fileName = 'mapper-' + reviewId;
 			if (await db.hasEntry(mapEvent.jobRootFolder, mapEvent.folder, reviewId)) {
 				console.warn('Multiple processing ' + mapEvent.jobRootFolder + '/' + mapEvent.folder + '/' + reviewId);
@@ -33,7 +31,6 @@ export default async (event, context): Promise<any> => {
 			}
 
 			try {
-				// console.log('logging entry', mapEvent.jobRootFolder, mapEvent.folder, fileName, reviewId, 'STARTED');
 				await db.logEntry(mapEvent.jobRootFolder, mapEvent.folder, fileName, reviewId, 'STARTED');
 			} catch (e) {
 				console.warn(
@@ -70,22 +67,17 @@ export default async (event, context): Promise<any> => {
 };
 
 const processMapEvent = async (reviewId: string, implementation: string) => {
-	console.log('procesing review id', reviewId);
 	const miniReview: MiniReview = await reviewDao.getMiniReview(reviewId);
 	if (!miniReview || !miniReview.replayKey) {
 		return null;
 	}
-	console.log('loaded mini review', miniReview.replayKey);
 	const replayString = miniReview.replayKey.endsWith('.zip')
 		? await s3.readZippedContent('xml.firestoneapp.com', miniReview.replayKey)
 		: await s3.readContentAsString('xml.firestoneapp.com', miniReview.replayKey);
-	console.log('Loaded replay. First characters are ' + replayString.substring(0, 100));
 	const replay: Replay = parseHsReplayString(replayString);
 	if (!replay) {
 		return null;
 	}
-	// console.log('replay parsed');
 	const output = await getImplementation(implementation).extractMetric(replay, miniReview, replayString);
-	// console.log('output computed');
 	return output;
 };

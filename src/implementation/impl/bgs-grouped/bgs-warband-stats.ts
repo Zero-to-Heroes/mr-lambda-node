@@ -33,7 +33,6 @@ export class BgsWarbandStats extends BgsGroupedOperation {
 			)
 			.valueSeq()
 			.toArray();
-		console.log('result', result);
 		return result;
 	}
 

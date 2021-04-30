@@ -36,9 +36,7 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 			ORDER BY periodStart DESC
 			LIMIT 1
 		`;
-		console.log('running last job query', lastJobQuery);
 		const lastJobData: readonly any[] = await mysql.query(lastJobQuery);
-		console.log('lastJobData', lastJobData && lastJobData.length > 0 && lastJobData[0].periodStart);
 
 		const startDate = lastJobData && lastJobData.length > 0 ? lastJobData[0].periodStart : null;
 		const startDateStatemenet = startDate ? `AND creationDate >= '${formatDate(startDate)}' ` : '';
@@ -46,7 +44,6 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 		// We get the data up to the end of the day prior to which the job runs
 		const endDate = new Date();
 		const formattedEndDate = formatDate(endDate);
-		console.log('will be using dates', startDateStatemenet, formattedEndDate);
 
 		const defaultQuery = `
 			SELECT reviewId FROM replay_summary
@@ -57,11 +54,8 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 			ORDER BY id DESC
 		`;
 		query = query || defaultQuery;
-		console.log('running query', query);
 		const dbResults: any[] = await mysql.query(query);
-		console.log('got db results', dbResults.length, dbResults.length > 0 && dbResults[0]);
 		const result: readonly string[] = dbResults.map(result => result.reviewId);
-		console.log('filtered db results', result.length);
 		return result;
 	}
 
@@ -72,7 +66,6 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 		}
 
 		const result: IntermediaryResult = await this.extractData(replay, miniReview, replayXml);
-		console.log('result built');
 		return result;
 	}
 
@@ -119,11 +112,9 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 		newResult: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
 		if (!inputResult || !inputResult.output) {
-			console.log('inputResult is null');
 			return newResult;
 		}
 		if (!newResult || !newResult.output) {
-			console.log('newResult is null');
 			return inputResult;
 		}
 
@@ -133,10 +124,7 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 
 		const output: IntermediaryResult = {} as IntermediaryResult;
 
-		// console.log('will merge events', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
-		console.log('will merge events');
 		for (const treasureId of allDuelsTreasureCardIds) {
-			// console.log('merging', playerCardId, currentResult.output[playerCardId], newResult.output[playerCardId]);
 			output[treasureId] = this.mergeTreasures(
 				currentResult.output[treasureId] || ({} as IntermediaryResultForTreasure),
 				newResult.output[treasureId] || ({} as IntermediaryResultForTreasure),
@@ -177,13 +165,11 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 	public async transformOutput<IntermediaryResult>(
 		output: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
-		console.log('transforming output', output);
 		const mergedOutput: ReduceOutput<IntermediaryResult> = await loadMergedOutput(
 			`${this.gameMode}-treasures`,
 			output,
 			(currentResult, newResult) => this.mergeReduceEvents(currentResult, newResult),
 		);
-		console.log('merged output', JSON.stringify(mergedOutput, null, 4));
 
 		const endDate = new Date();
 		const periodDate = formatDate(endDate);
@@ -216,7 +202,6 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 			(gameMode, periodStart, cardId, playerClass, matchesPlayed, totalLosses, totalTies, totalWins)
 			VALUES ${values}
 		`;
-		console.log('running db insert query');
 		const mysql = await getConnection();
 		await mysql.query(query);
 

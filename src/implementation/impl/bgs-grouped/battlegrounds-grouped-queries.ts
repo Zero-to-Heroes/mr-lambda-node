@@ -48,7 +48,6 @@ export class BattlegroundsGroupedQueries implements Implementation<any> {
 		results.forEach(implentationResult => {
 			result[implentationResult.key] = implentationResult.data;
 		});
-		console.log('result', JSON.stringify(result, null, 4));
 		return result;
 	}
 
@@ -57,11 +56,9 @@ export class BattlegroundsGroupedQueries implements Implementation<any> {
 		newResult: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
 		if (!inputResult || !inputResult.output) {
-			console.log('currentResult is null', JSON.stringify(newResult, null, 4));
 			return newResult;
 		}
 		if (!newResult || !newResult.output) {
-			console.log('newResult is null', JSON.stringify(inputResult, null, 4));
 			return inputResult;
 		}
 
@@ -71,15 +68,12 @@ export class BattlegroundsGroupedQueries implements Implementation<any> {
 
 		const output: IntermediaryResult = {} as IntermediaryResult;
 		for (const key of this.allKeys) {
-			// console.log('merging', key, currentResult.output[key], newResult.output[key]);
 			output[key] = await this.getImplementation(key).mergeIntermediaryResults(
 				currentResult.output[key] || [],
 				newResult.output[key] || [],
 			);
-			// console.log('merged', output[key]);
 		}
 
-		// console.log('returning', output);
 		return {
 			output: output,
 		} as ReduceOutput<IntermediaryResult>;
@@ -88,13 +82,11 @@ export class BattlegroundsGroupedQueries implements Implementation<any> {
 	public async transformOutput<IntermediaryResult>(
 		output: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
-		console.log('transforming output', output);
 		const mergedOutput: ReduceOutput<IntermediaryResult> = await loadMergedOutput(
 			this.jobName,
 			output,
 			(currentResult, newResult) => this.mergeReduceEvents(currentResult, newResult),
 		);
-		console.log('merged output', mergedOutput);
 
 		const periodDate = formatDate(new Date());
 		const mysql = await getConnection();

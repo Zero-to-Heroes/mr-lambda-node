@@ -60,11 +60,9 @@ export abstract class BgsTurnValueBuilder implements Implementation<any> {
 		newResult: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
 		if (!inputResult || !inputResult.output) {
-			console.log('currentResult is null', JSON.stringify(newResult, null, 4));
 			return newResult;
 		}
 		if (!newResult || !newResult.output) {
-			console.log('newResult is null', JSON.stringify(inputResult, null, 4));
 			return inputResult;
 		}
 
@@ -80,24 +78,19 @@ export abstract class BgsTurnValueBuilder implements Implementation<any> {
 		newResult: IntermediaryResult,
 	): Promise<IntermediaryResult> {
 		if (!inputResult) {
-			console.log('currentResult is null', JSON.stringify(newResult, null, 4));
 			return newResult;
 		}
 		if (!newResult) {
-			console.log('newResult is null', JSON.stringify(inputResult, null, 4));
 			return inputResult;
 		}
 
 		const output: IntermediaryResult = {} as IntermediaryResult;
 
-		// console.log('will merge', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
 		const existingCurrentResultKeys = Object.keys(inputResult);
 		for (const key of existingCurrentResultKeys) {
-			// console.log('merging', playerCardId, currentResult.output[playerCardId], newResult.output[playerCardId]);
 			output[key] = {
 				data: this.mergeOutputs(inputResult[key]?.data || [], newResult[key]?.data || []),
 			};
-			// console.log('merged', output[playerCardId]);
 		}
 
 		// Might do the same thing twice, but it's clearer that way
@@ -145,20 +138,16 @@ export abstract class BgsTurnValueBuilder implements Implementation<any> {
 	public async transformOutput<IntermediaryResult>(
 		output: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
-		// console.log('transforming output', JSON.stringify(output, null, 4));
 		const mergedOutput: ReduceOutput<IntermediaryResult> = await loadMergedOutput(
 			this.jobName,
 			output,
 			(currentResult, newResult) => this.mergeReduceEvents(currentResult, newResult),
 		);
-		console.log('merged output', JSON.stringify(mergedOutput, null, 4));
 
 		const normalizedValues: IntermediaryResult = {} as IntermediaryResult;
 		for (const key of Object.keys(mergedOutput.output)) {
-			// console.log('normalizing', playerCardId, mergedOutput.output[playerCardId]);
 			normalizedValues[key] = this.normalize(mergedOutput.output[key]);
 		}
-		console.log('normalized ', JSON.stringify(normalizedValues, null, 4));
 
 		const mysqlBgs = await getConnectionBgs();
 		const creationDate = new Date().toISOString();
@@ -187,9 +176,7 @@ export abstract class BgsTurnValueBuilder implements Implementation<any> {
 			});
 		const query = this.getInsertionQuery(creationDate, sortedValues);
 		if (query) {
-			console.log('running query', query);
 			await mysqlBgs.query(query);
-			console.log('query run');
 		}
 
 		return mergedOutput;

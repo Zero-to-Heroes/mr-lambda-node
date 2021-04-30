@@ -43,11 +43,9 @@ export abstract class BuildCustomQuery implements Implementation<any> {
 		newResult: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
 		if (!inputResult || !inputResult.output) {
-			console.log('currentResult is null', JSON.stringify(newResult, null, 4));
 			return newResult;
 		}
 		if (!newResult || !newResult.output) {
-			console.log('newResult is null', JSON.stringify(inputResult, null, 4));
 			return inputResult;
 		}
 
@@ -57,17 +55,14 @@ export abstract class BuildCustomQuery implements Implementation<any> {
 
 		const output: IntermediaryResult = {} as IntermediaryResult;
 
-		// console.log('will merge', JSON.stringify(currentResult, null, 4), JSON.stringify(newResult, null, 4));
 		const existingCurrentResultKeys = Object.keys(currentResult.output);
 		for (const playerCardId of existingCurrentResultKeys) {
-			// console.log('merging', playerCardId, currentResult.output[playerCardId], newResult.output[playerCardId]);
 			output[playerCardId] = {
 				data: this.mergeOutputs(
 					currentResult.output[playerCardId]?.data || [],
 					newResult.output[playerCardId]?.data || [],
 				),
 			};
-			// console.log('merged', output[playerCardId]);
 		}
 
 		// Might do the same thing twice, but it's clearer that way
@@ -120,20 +115,16 @@ export abstract class BuildCustomQuery implements Implementation<any> {
 	public async transformOutput<IntermediaryResult>(
 		output: ReduceOutput<IntermediaryResult>,
 	): Promise<ReduceOutput<IntermediaryResult>> {
-		console.log('transforming output', JSON.stringify(output, null, 4));
 		const mergedOutput: ReduceOutput<IntermediaryResult> = await loadMergedOutput(
 			this.jobName,
 			output,
 			(currentResult, newResult) => this.mergeReduceEvents(currentResult, newResult),
 		);
-		console.log('merged output', JSON.stringify(mergedOutput, null, 4));
 
 		const normalizedValues: IntermediaryResult = {} as IntermediaryResult;
 		for (const playerCardId of Object.keys(mergedOutput.output)) {
-			// console.log('normalizing', playerCardId, mergedOutput.output[playerCardId]);
 			normalizedValues[playerCardId] = this.normalize(mergedOutput.output[playerCardId]);
 		}
-		console.log('normalized ', JSON.stringify(normalizedValues, null, 4));
 
 		const mysqlBgs = await getConnectionBgs();
 		const creationDate = new Date().toISOString();
@@ -163,9 +154,7 @@ export abstract class BuildCustomQuery implements Implementation<any> {
 			.map(info => `('${creationDate}', '${info.cardId}', '${info.turn}', '${info.data}')`)
 			.join(',');
 		const query = this.getInsertionQuery(values);
-		console.log('running query', query);
 		await mysqlBgs.query(query);
-		console.log('query run');
 
 		return mergedOutput;
 	}

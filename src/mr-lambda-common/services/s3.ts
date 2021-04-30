@@ -37,7 +37,6 @@ export class S3 {
 			return;
 		}
 		const input = { Bucket: bucketName, Key: key };
-		// console.log('getting s3 object', key);
 		this.s3.getObject(input, (err, data) => {
 			if (err) {
 				// console.warn('could not read s3 object', bucketName, key, err, retriesLeft);
@@ -47,7 +46,6 @@ export class S3 {
 				return;
 			}
 			const objectContent = data.Body.toString('utf8');
-			// console.log('read object content', bucketName, key);
 			callback(objectContent);
 		});
 	}
@@ -65,7 +63,6 @@ export class S3 {
 			return;
 		}
 		const input = { Bucket: bucketName, Key: key };
-		// console.log('getting s3 object', key);
 		this.s3.getObject(input, async (err, data) => {
 			if (err) {
 				// console.warn('could not read s3 object', bucketName, key, err, retriesLeft);
@@ -75,12 +72,9 @@ export class S3 {
 				return;
 			}
 			try {
-				// console.log('loaded s3 object', key);
 				const zipContent = await loadAsync(data.Body as any);
-				// console.log('loaded zipContent', key);
 				const file = Object.keys(zipContent.files)[0];
 				const objectContent = await zipContent.file(file).async('string');
-				// console.log('loaded object content', key);
 				callback(objectContent);
 			} catch (e) {
 				console.warn('could not read s3 object', bucketName, key, err, retriesLeft, e);
@@ -94,7 +88,6 @@ export class S3 {
 
 	public async writeCompressedFile(content: any, bucket: string, fileName: string): Promise<boolean> {
 		const jszip = new JSZip.default();
-		console.log('ready to zip');
 		jszip.file('replay.xml', content);
 		const blob: Buffer = await jszip.generateAsync({
 			type: 'nodebuffer',

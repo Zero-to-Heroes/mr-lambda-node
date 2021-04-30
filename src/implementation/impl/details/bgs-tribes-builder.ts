@@ -11,28 +11,21 @@ export class BgsTribesBuilder {
 			.findall('.//Player')
 			.find(player => player.get('isMainPlayer') === 'false');
 		const opponentPlayerEntityId = opponentPlayerElement.get('id');
-		// console.log('mainPlayerEntityId', opponentPlayerEntityId);
 		const structure = {
 			entities: {},
 			boardByTurn: Map.of(),
 			currentTurn: 0,
 		};
 		this.parseElement(elementTree.getroot(), replay.mainPlayerId, opponentPlayerEntityId, null, structure);
-		// console.log('mapped tribes', structure.boardByTurn.toJS(), structure.boardByTurn.valueSeq());
 		const tribeCompos = structure.boardByTurn.valueSeq().toArray();
-		// console.log('tribeCompos', tribeCompos);
 		// We're only interested in the last one
 		const lastRoundCompo = tribeCompos[tribeCompos.length - 1];
 		if (!lastRoundCompo) {
 			console.warn('missing compo', tribeCompos);
-			console.log(JSON.stringify(structure, null, 4));
 			return {};
 		}
-		console.log('lastRoundCompo', lastRoundCompo);
 		const grouped = groupBy(lastRoundCompo, card => card.tribe);
-		// console.log('grouped', grouped);
 		const countByTribe = grouped.map((cards: any[], tribeId: string) => cards.length).toMap();
-		console.log('countByTribe', countByTribe.toJS());
 		return countByTribe.toJS();
 	}
 
@@ -62,11 +55,9 @@ export class BgsTribesBuilder {
 					structure.entities[element.get('entity')].controller = parseInt(element.get('value'));
 				}
 				if (parseInt(element.get('tag')) === GameTag.ZONE) {
-					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 					structure.entities[element.get('entity')].zone = parseInt(element.get('value'));
 				}
 				if (parseInt(element.get('tag')) === GameTag.ZONE_POSITION) {
-					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 					structure.entities[element.get('entity')].zonePosition = parseInt(element.get('value'));
 				}
 			}
@@ -74,7 +65,6 @@ export class BgsTribesBuilder {
 				parseInt(element.get('tag')) === GameTag.NEXT_STEP &&
 				parseInt(element.get('value')) === Step.MAIN_START_TRIGGERS
 			) {
-				// console.log('considering parent', parent.get('entity'), parent);
 				if (parent && parent.get('entity') === opponentPlayerEntityId) {
 					const playerEntitiesOnBoard = Object.values(structure.entities)
 						.map(entity => entity as any)
@@ -89,7 +79,6 @@ export class BgsTribesBuilder {
 						}));
 					// playerEntitiesOnBoard.forEach(minion => {
 					// 	if (minion.tribe == '-1') {
-					// 		console.log('minion with invalid tribe', minion.cardId, minion.initialElement);
 					// 	}
 					// });
 					// console.log(
@@ -98,10 +87,8 @@ export class BgsTribesBuilder {
 					// 	JSON.stringify(playerEntitiesOnBoard, null, 4),
 					// );
 					structure.boardByTurn = structure.boardByTurn.set(structure.currentTurn, playerEntitiesOnBoard);
-					// console.log('updated', structure.boardByTurn.toJS(), playerEntitiesOnBoard);
 					structure.currentTurn++;
 				}
-				// console.log('board for turn', structure.currentTurn, mainPlayerId, '\n', playerEntitiesOnBoard);
 			}
 		}
 
@@ -109,7 +96,6 @@ export class BgsTribesBuilder {
 		if (children && children.length > 0) {
 			for (const child of children) {
 				this.parseElement(child, mainPlayerId, opponentPlayerEntityId, element, structure);
-				// console.log('iterating', child.attrib);
 			}
 		}
 	}

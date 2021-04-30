@@ -21,7 +21,6 @@ export default async (event): Promise<any> => {
 
 	let numberOfFiles = 0;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < 1) {
-		console.log('Aggregation completion progress', numberOfFiles + '/' + 1);
 		await sleep(2000);
 
 		// We start a new process before this one times out, and the new process will resume
@@ -31,11 +30,9 @@ export default async (event): Promise<any> => {
 			return;
 		}
 	}
-	console.log('Aggregation phase done! Should send an email here');
 	return { statusCode: 200, body: '' };
 };
 
 const countOutputFiles = async (event: TriggerWatcherEvent): Promise<number> => {
-	console.log('trying to get db log', event.jobRootFolder, event.folder);
 	return await db.countFilesCompleted(event.jobRootFolder, event.folder);
 };

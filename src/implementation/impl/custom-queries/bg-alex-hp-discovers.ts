@@ -21,7 +21,6 @@ export class BgAlexHpDiscovers implements Implementation<any> {
 			ORDER BY creationDate DESC
 		`;
 		query = query || defaultQuery;
-		console.log('running query', query);
 		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
 		return result;
@@ -38,7 +37,6 @@ export class BgAlexHpDiscovers implements Implementation<any> {
 			// Also includes opponent, but not an issue
 			const queenOfDragonsEntity = elementTree.find(`.//FullEntity[@cardID='TB_BaconShop_HP_064']`);
 			if (!queenOfDragonsEntity) {
-				console.log('Hero power never triggered, returning');
 				return null;
 			}
 			const entityId = queenOfDragonsEntity.get('id');
@@ -46,7 +44,6 @@ export class BgAlexHpDiscovers implements Implementation<any> {
 				`.//Block[@entity='${entityId}'][@type="${BlockType.TRIGGER}"]`,
 			);
 			if (!heroPowerTriggerBlock) {
-				console.log('no hero power trigger block');
 				return null;
 			}
 
@@ -77,7 +74,6 @@ export class BgAlexHpDiscovers implements Implementation<any> {
 					fullEntitiesInPicks.find(entity => entity.get('id') === choice.get('entity')).get('cardID'),
 				),
 			};
-			console.log('output', JSON.stringify(output));
 			return output;
 		} catch (e) {
 			console.error('error while parsing', e, miniReview);
@@ -90,11 +86,9 @@ export class BgAlexHpDiscovers implements Implementation<any> {
 		newResult: ReduceOutput<any>,
 	): Promise<ReduceOutput<any>> {
 		if (!currentResult) {
-			console.log('currentResult is null');
 			return newResult;
 		}
 		if (!newResult) {
-			console.log('newResult is null');
 			return currentResult;
 		}
 		return {
@@ -103,33 +97,28 @@ export class BgAlexHpDiscovers implements Implementation<any> {
 	}
 
 	private mergeOutputs(firstOutput, secondOutput): any {
-		console.log('merging outputs', firstOutput, secondOutput);
 		const result = {
 			choices: (firstOutput.choices || []).concat(secondOutput.choices || []),
 			picks: (firstOutput.picks || []).concat(secondOutput.picks || []),
 		};
-		console.log('result is', result);
 		return result;
 	}
 
 	public async transformOutput(output: ReduceOutput<any>): Promise<ReduceOutput<any>> {
 		const cards = new AllCardsService();
 		await cards.initializeCardsDb();
-		console.log('transforming output', output);
 		const result = {
 			output: {
 				choices: merge(output.output.choices),
 				picks: merge(output.output.picks),
 			},
 		};
-		console.log('final result', result);
 		return result;
 	}
 }
 
 const merge = (values: readonly string[]): any => {
 	const mergedChoices = groupBy(values, cardId => cardId);
-	console.log('mergedChoices', mergedChoices);
 	const consolidatedChoices = mergedChoices.map((value, key) => value.length);
 	const finalChoices = {};
 	consolidatedChoices.keySeq().forEach(cardId => {

@@ -18,15 +18,12 @@ export const loadBgReviewIds = async (
 		ORDER BY lastDateRan DESC
 		LIMIT 1
 	`;
-	console.log('running last job query', lastJobQuery);
 	const lastJobData: readonly any[] = await mysql.query(lastJobQuery);
-	console.log('lastJobData', lastJobData && lastJobData.length > 0 && lastJobData[0].lastDateRan);
 
 	const startDate = lastJobData && lastJobData.length > 0 ? lastJobData[0].lastDateRan : null;
 	const startDateStatemenet = startDate ? `AND creationDate >= '${formatDate(startDate)}' ` : '';
 
 	// const formattedEndDate = formatDate(endDate);
-	console.log('will be using dates', startDateStatemenet);
 
 	// Don't forget: keep only the top 4 in the query
 	const defaultQuery = `
@@ -40,11 +37,8 @@ export const loadBgReviewIds = async (
 		LIMIT ${limit}
 	`;
 	query = query || defaultQuery;
-	console.log('running query', query);
 	const dbResults: any[] = await mysql.query(query);
-	console.log('got db results', dbResults.length, dbResults.length > 0 && dbResults[0]);
 	const result: readonly string[] = dbResults.map(result => result.reviewId);
-	console.log('filtered db results', result.length);
 	return result;
 };
 
@@ -53,7 +47,6 @@ export const loadMergedOutput = async <T>(
 	output: ReduceOutput<T>,
 	mergeReduceEvents: (o1: ReduceOutput<T>, o2: ReduceOutput<T>) => Promise<ReduceOutput<T>>,
 ): Promise<ReduceOutput<T>> => {
-	console.log('final output before merge with previous job data', JSON.stringify(output, null, 4));
 	const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
 	const mysql = await getConnection();
 	const lastJobQuery = `
@@ -64,13 +57,10 @@ export const loadMergedOutput = async <T>(
 		LIMIT 1
 	`;
 	const lastJobData: readonly any[] = await mysql.query(lastJobQuery);
-	console.log('lastJobData', lastJobData);
 
 	const lastOutput = lastJobData && lastJobData.length > 0 ? JSON.parse(lastJobData[0].dataAtJobEnd) : {};
-	console.log('lastOutput', JSON.stringify(lastOutput, null, 4));
 
 	const mergedOutput = await mergeReduceEvents(output, lastOutput);
-	console.log('transforming merged output', JSON.stringify(mergedOutput, null, 4));
 
 	const lastDateRan = new Date();
 	const saveQuery = `

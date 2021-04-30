@@ -76,11 +76,9 @@ const compositionForTurnParse = (structure: ParsingStructure) => {
 				structure.entities[element.get('entity')].creatorEntityId = parseInt(element.get('value'));
 			}
 			if (parseInt(element.get('tag')) === GameTag.ZONE) {
-				// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 				structure.entities[element.get('entity')].zone = parseInt(element.get('value'));
 			}
 			if (parseInt(element.get('tag')) === GameTag.ZONE_POSITION) {
-				// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 				structure.entities[element.get('entity')].zonePosition = parseInt(element.get('value'));
 			}
 			if (parseInt(element.get('tag')) === GameTag.ATK) {
@@ -88,19 +86,15 @@ const compositionForTurnParse = (structure: ParsingStructure) => {
 				structure.entities[element.get('entity')].atk = parseInt(element.get('value'));
 			}
 			if (parseInt(element.get('tag')) === GameTag.HEALTH) {
-				// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 				structure.entities[element.get('entity')].health = parseInt(element.get('value'));
 			}
 			if (parseInt(element.get('tag')) === GameTag.TECH_LEVEL) {
-				// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 				structure.entities[element.get('entity')].techLevel = parseInt(element.get('value'));
 			}
 			if (parseInt(element.get('tag')) === GameTag.HAS_BEEN_REBORN) {
-				// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 				structure.entities[element.get('entity')].hasBeenReborn = parseInt(element.get('value'));
 			}
 			if (parseInt(element.get('tag')) === GameTag.BOARD_VISUAL_STATE) {
-				// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 				structure.entities[element.get('entity')].boardVisualState = parseInt(element.get('value'));
 			}
 		}
@@ -122,12 +116,10 @@ const parseElement = (
 			parseInt(element.get('tag')) === GameTag.NEXT_STEP &&
 			parseInt(element.get('value')) === Step.MAIN_START_TRIGGERS
 		) {
-			// console.log('considering parent', parent.get('entity'), parent);
 			if (parent && parent.get('entity') === opponentPlayerEntityId) {
 				populateFunctions.forEach(populateFunction => populateFunction(turnCountWrapper.currentTurn));
 				turnCountWrapper.currentTurn++;
 			}
-			// console.log('board for turn', structure.currentTurn, mainPlayerId, '\n', playerEntitiesOnBoard);
 		}
 		if (
 			parseInt(element.get('tag')) === GameTag.PLAYSTATE &&

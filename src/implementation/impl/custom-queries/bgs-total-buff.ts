@@ -27,7 +27,6 @@ export class BgsTotalBuff implements Implementation<BuffOutput> {
 			LIMIT 2
 		`;
 		query = query || defaultQuery;
-		console.log('running query', query);
 		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
 		return result;
@@ -60,15 +59,12 @@ export class BgsTotalBuff implements Implementation<BuffOutput> {
 				.reduce((a, b) => a.concat(b), [])
 				.filter(buff => buff.totalBuff > 0);
 
-			console.log('transforming', buffInfos);
 			// if (!buffInfos.map(buff => buff.totalBuff).reduce((a, b) => a + b, 0)) {
-			// 	console.log('no relevant buff info');
 			// 	return null;
 			// }
 			const output: BuffOutput = {
 				buffPerCreatorPerTurn: buffInfos,
 			};
-			console.log('output', JSON.stringify(output));
 			return output;
 		} catch (e) {
 			console.error('error while parsing', e, miniReview);
@@ -81,13 +77,10 @@ export class BgsTotalBuff implements Implementation<BuffOutput> {
 		currentResult: ReduceOutput<BuffOutput>,
 		newResult: ReduceOutput<BuffOutput>,
 	): Promise<ReduceOutput<BuffOutput>> {
-		console.log('merging', JSON.stringify(currentResult), JSON.stringify(newResult));
 		if (!currentResult?.output?.buffPerCreatorPerTurn?.length) {
-			console.log('currentResult is empty', currentResult);
 			return newResult;
 		}
 		if (!newResult?.output?.buffPerCreatorPerTurn?.length) {
-			console.log('newResult is empty', newResult);
 			return currentResult;
 		}
 		return {
@@ -102,18 +95,13 @@ export class BgsTotalBuff implements Implementation<BuffOutput> {
 
 	private mergeBuffs(firstOutput: readonly BuffInfo[], secondOutput: readonly BuffInfo[]): readonly BuffInfo[] {
 		const maxTurn = Math.max(...firstOutput.map(info => info.turn), ...secondOutput.map(info => info.turn));
-		console.log('maxTurn', maxTurn);
 		const result: BuffInfo[] = [];
 		for (let i = 1; i <= maxTurn; i++) {
 			const firstInfos = firstOutput.filter(info => info.turn === i);
-			console.log('firstInfos', JSON.stringify(firstInfos));
 			const secondInfos = secondOutput.filter(info => info.turn === i);
-			console.log('secondInfos', JSON.stringify(secondInfos));
 			const mergedInfos = this.mergeBuffsForTurn(i, firstInfos, secondInfos);
-			console.log('mergedInfos', JSON.stringify(mergedInfos));
 			result.push(...mergedInfos);
 		}
-		// console.log('result is', result);
 		return result;
 	}
 
@@ -126,9 +114,7 @@ export class BgsTotalBuff implements Implementation<BuffOutput> {
 			...firstInfos.map(info => info.cardId),
 			...secondInfos.map(info => info.cardId),
 		];
-		console.log('all card Ids', allCardsIds);
 		const uniqueCardIds = [...new Set(allCardsIds)];
-		console.log('unique card Ids', uniqueCardIds);
 		return uniqueCardIds.map(cardId => {
 			const infosForCard = [
 				...firstInfos.filter(info => info.cardId === cardId),
@@ -145,7 +131,6 @@ export class BgsTotalBuff implements Implementation<BuffOutput> {
 
 	public async transformOutput(output: ReduceOutput<BuffOutput>): Promise<ReduceOutput<BuffOutput>> {
 		await cards.initializeCardsDb();
-		console.log('transforming output', JSON.stringify(output));
 
 		// s3.writeFile(csvCreatorOutput, 'com.zerotoheroes.mr', 'bgs-token-damage-creator.csv');
 
@@ -165,7 +150,6 @@ export class BgsTotalBuff implements Implementation<BuffOutput> {
 		// 	.join('\n');
 		// s3.writeFile(csvTurnOutput, 'com.zerotoheroes.mr', 'bgs-token-damage-turn.csv');
 
-		// console.log('final result', result);
 		// return result;
 		return output;
 	}

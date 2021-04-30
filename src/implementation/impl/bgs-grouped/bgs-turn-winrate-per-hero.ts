@@ -21,13 +21,11 @@ export class BgsCombatWinrate extends BgsGroupedOperation {
 			SELECT * FROM bgs_single_run_stats
 			WHERE reviewId = '${miniReview.id}'
 		`;
-		console.log('running query', loadQuery);
 		const rawResults = await mysql.query(loadQuery);
 		const postMatchStats: any[] = (rawResults as any[]).filter(
 			result => result.jsonStats && result.jsonStats.length <= 50000,
 		);
 		if (!postMatchStats || postMatchStats.length === 0) {
-			console.log('no postmatchstats, returning', loadQuery, rawResults);
 			return null;
 		}
 		if (postMatchStats.length > 1) {
@@ -45,17 +43,14 @@ export class BgsCombatWinrate extends BgsGroupedOperation {
 			})
 			.filter(result => result.stats);
 		if (!inflatedStats || inflatedStats.length === 0) {
-			console.log('no inflatedStats, returning', loadQuery, rawResults);
 			return null;
 		}
 
 		const battleResultHistory = inflatedStats[0].stats.battleResultHistory;
 		if (!battleResultHistory || battleResultHistory.length === 0) {
-			console.log('no battleResultHistory, returning', loadQuery);
 			return null;
 		}
 
-		// console.log('inflated stats', JSON.stringify(inflatedStats, null, 4), rawResults);
 		const winrate: readonly TotalDataTurnInfo[] = battleResultHistory
 			.filter(result => result?.simulationResult?.wonPercent != null)
 			.map(result => ({
@@ -74,15 +69,11 @@ export class BgsCombatWinrate extends BgsGroupedOperation {
 const parseStats = (inputStats: string): BgsPostMatchStats => {
 	try {
 		const parsed = JSON.parse(inputStats);
-		// console.log('parsed', parsed);
 		return parsed;
 	} catch (e) {
 		try {
-			// console.log('reading base64', inputStats);
 			const fromBase64 = Buffer.from(inputStats, 'base64').toString();
-			// console.log('fromBase64', fromBase64);
 			const inflated = inflate(fromBase64, { to: 'string' });
-			// console.log('inflated', inflated);
 			return JSON.parse(inflated);
 		} catch (e) {
 			console.warn('Could not build full stats, ignoring review', inputStats);

@@ -15,7 +15,6 @@ export class BuildAiDecklists implements Implementation<any> {
 		const mysql = await getConnection();
 		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
-		// console.log('loaded DB results', result.length);
 		return result;
 	}
 
@@ -116,7 +115,6 @@ export class BuildAiDecklists implements Implementation<any> {
 					deckTotalCardsSeen: splitEntities,
 				} as Output,
 			];
-			console.log('output', JSON.stringify(output));
 			return output;
 		} catch (e) {
 			console.error('error while parsing', e, miniReview);
@@ -129,11 +127,9 @@ export class BuildAiDecklists implements Implementation<any> {
 		newResult: ReduceOutput<any>,
 	): Promise<ReduceOutput<any>> {
 		if (!currentResult) {
-			console.log('currentResult is null');
 			return newResult;
 		}
 		if (!newResult) {
-			console.log('newResult is null');
 			return currentResult;
 		}
 		return {
@@ -142,7 +138,6 @@ export class BuildAiDecklists implements Implementation<any> {
 	}
 
 	private mergeOutputs(firstOutput: readonly Output[], secondOutput: readonly Output[]): readonly Output[] {
-		console.log('merging outputs', firstOutput, secondOutput);
 		const result: Output[] = [];
 		for (const firstInfo of firstOutput) {
 			const secondInfo =
@@ -157,12 +152,10 @@ export class BuildAiDecklists implements Implementation<any> {
 				result.push(secondInfo);
 			}
 		}
-		console.log('result', result);
 		return result;
 	}
 
 	private mergeOutput(firstInfo: Output, secondInfo: Output): Output {
-		// console.log('merging output', firstInfo, secondInfo);
 		const cardId = firstInfo.opponentCardId || secondInfo.opponentCardId;
 		const scenarioIds = [...(firstInfo.scenarioIds || []), ...(secondInfo.scenarioIds || [])].filter(
 			(value, index, self) => self.indexOf(value) === index,
@@ -190,7 +183,6 @@ export class BuildAiDecklists implements Implementation<any> {
 			deckCards[deckId] = cards;
 			deckTotalCardsSeen[deckId] = totalCardsSeen;
 		}
-		// console.log('ready to return', cardId, scenarioIds, numberOfGames, allDeckKeys);
 		const result: Output = {
 			opponentCardId: cardId,
 			scenarioIds: scenarioIds,
@@ -200,7 +192,6 @@ export class BuildAiDecklists implements Implementation<any> {
 			deckCards: deckCards,
 			deckTotalCardsSeen: deckTotalCardsSeen,
 		};
-		// console.log('result', result);
 		return result;
 	}
 
@@ -212,22 +203,16 @@ export class BuildAiDecklists implements Implementation<any> {
 	): [{ [cardId: string]: number }, { [cardId: string]: number }] {
 		const cardsInFirstDeck = Object.keys(firstDeck);
 		const cardsInSecondDeck = Object.keys(secondDeck);
-		// console.log('cards in decks', cardsInFirstDeck, cardsInSecondDeck);
 		const cards: { [cardId: string]: number } = {};
 		const totalCardsSeen: { [cardId: string]: number } = {};
 		for (const cardId of cardsInFirstDeck) {
-			// console.log('assigning', cardId, firstDeck[cardId], secondDeck[cardId]);
 			cards[cardId] = Math.max(firstDeck[cardId] || 0, secondDeck[cardId] || 0);
 			totalCardsSeen[cardId] = (firstSeen[cardId] || 0) + (secondSeen[cardId] || 0);
-			// console.log('resulting', result[cardId]);
 		}
 		for (const cardId of cardsInSecondDeck) {
-			// console.log('assigning 2', cardId, firstDeck[cardId], secondDeck[cardId]);
 			cards[cardId] = Math.max(secondDeck[cardId] || 0, firstDeck[cardId] || 0);
 			totalCardsSeen[cardId] = (secondSeen[cardId] || 0) + (firstSeen[cardId] || 0);
-			// console.log('resulting 2', result[cardId]);
 		}
-		// console.log('result', [cards, totalCardsSeen]);
 		return [cards, totalCardsSeen];
 	}
 
@@ -309,7 +294,6 @@ export class BuildAiDecklists implements Implementation<any> {
 		const initialList = output.deckCards[mainDeckId];
 		const totalCardsSeen = output.deckTotalCardsSeen[mainDeckId];
 		const cardNames = deckCardNames[mainDeckId];
-		console.log('deckIds', deckIds, mainDeckId, initialList);
 		return {
 			comment: comment,
 			numberOfGames: output.numberOfGames,

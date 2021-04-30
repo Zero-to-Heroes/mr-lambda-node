@@ -39,23 +39,18 @@ export abstract class BgsGroupedOperation {
 		newResult: IntermediaryResult,
 	): Promise<IntermediaryResult> {
 		if (!inputResult) {
-			// console.log('currentResult is null', JSON.stringify(newResult, null, 4));
 			return newResult;
 		}
 		if (!newResult) {
-			// console.log('newResult is null', JSON.stringify(inputResult, null, 4));
 			return inputResult;
 		}
 
 		const result: IntermediaryResult = {} as IntermediaryResult;
-		// console.log('will merge', inputResult, newResult);
 		const existingCurrentResultKeys = Object.keys(inputResult);
 		for (const key of existingCurrentResultKeys) {
-			// console.log('merging', key, inputResult[key], newResult[key]);
 			result[key] = {
 				data: this.mergeOutputs(inputResult[key]?.data || [], newResult[key]?.data || []),
 			};
-			// console.log('merged', result[key]);
 		}
 
 		// Might do the same thing twice, but it's clearer that way
@@ -101,7 +96,6 @@ export abstract class BgsGroupedOperation {
 	}
 
 	public async saveInDb(periodDate: string, resultToSave: IntermediaryResult, mysql) {
-		console.log('will save result', resultToSave);
 		const stats: readonly TurnInfoForDb[] = Object.keys(resultToSave)
 			.map(playerCardId => {
 				const dataForPlayer: IntermediaryResultForKey = resultToSave[playerCardId];
@@ -142,7 +136,6 @@ export abstract class BgsGroupedOperation {
 			(periodStart, heroCardId, turn, dataPoints, totalValue)
 			VALUES ${values}
 		`;
-		console.log('running query', query);
 		await mysql.query(query);
 	}
 

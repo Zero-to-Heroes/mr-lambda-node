@@ -19,7 +19,6 @@ const db = new Db();
 // the more traditional callback-style handler.
 // [1]: https://aws.amazon.com/blogs/compute/node-js-8-10-runtime-now-available-in-aws-lambda/
 export default async (event): Promise<any> => {
-	// console.log('event', event);
 	const start = Date.now();
 	const triggerEvent: TriggerWatcherEvent = event.Records.map(event => JSON.parse(event.body))[0];
 	const numberOfReducers = triggerEvent.expectedNumberOfFiles;
@@ -27,7 +26,6 @@ export default async (event): Promise<any> => {
 	let previousCompletion = 0;
 	let retriesLeft = 50;
 	while ((numberOfFiles = await countOutputFiles(triggerEvent)) < numberOfReducers) {
-		console.log('Reducing completion progress', numberOfFiles + '/' + numberOfReducers);
 		await sleep(2000);
 		if (retriesLeft < 0) {
 			console.warn('Things are stuck, moving forward', numberOfFiles);
@@ -46,18 +44,15 @@ export default async (event): Promise<any> => {
 		// We start a new process before this one times out, and the new process will resume
 		// where we left, since if will always use the number of files as stored in db
 		if (Date.now() - start > TIMEOUT_LIMIT && Date.now() - start < MAX_ALLOWED_EXECUTION_TIME) {
-			console.log('approaching time out, restarting function');
 			await sqs.sendMessageToQueue(triggerEvent, process.env.SQS_REDUCER_WATCHER_URL);
 			return;
 		}
 	}
-	console.log('Reducing phase over, starting aggregation phase');
 	await startAggregationPhase(
 		await outputFileKeys(triggerEvent),
 		triggerEvent.jobRootFolder,
 		triggerEvent.implementation,
 	);
-	console.log('aggregation phase trigger done');
 	const newTriggerEvent: TriggerWatcherEvent = {
 		bucket: process.env.S3_BUCKET,
 		folder: RESULT_FOLDER,
@@ -66,7 +61,6 @@ export default async (event): Promise<any> => {
 		implementation: triggerEvent.implementation,
 	};
 	await sqs.sendMessageToQueue(newTriggerEvent, process.env.SQS_AGGREGATOR_WATCHER_URL);
-	console.log("Job's done! Passing the baton ", newTriggerEvent);
 	return { statusCode: 200, body: '' };
 };
 
@@ -83,9 +77,7 @@ const startAggregationPhase = async (
 		implementation: implementation,
 		eventId: uuid(),
 	} as ReduceEvent;
-	console.log('Built SQS aggregation event to send');
 	await sqs.sendMessageToQueue(aggregationEvent, process.env.SQS_AGGREGATOR_TRIGGER_URL);
-	console.log('Sent all SQS messages to reducers');
 	return aggregationEvent;
 };
 
@@ -94,6 +86,5 @@ const countOutputFiles = async (event: TriggerWatcherEvent): Promise<number> => 
 };
 
 const outputFileKeys = async (event: TriggerWatcherEvent): Promise<readonly string[]> => {
-	// console.log('Getting output file keys for ' + event.jobRootFolder + ' and ' + event.folder);
 	return await db.getFilesKeys(event.jobRootFolder, event.folder);
 };

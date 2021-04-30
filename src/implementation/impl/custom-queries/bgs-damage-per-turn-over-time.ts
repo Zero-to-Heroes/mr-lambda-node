@@ -25,7 +25,6 @@ export class BgsDmgPerTurnOverTime extends BgsTurnValueBuilder {
 					.split('/')
 					.reverse()
 					.join('-');
-				console.log('key', formattedDate, miniReview.creationDate);
 				return formattedDate;
 			},
 			49534,
@@ -39,7 +38,6 @@ export class BgsDmgPerTurnOverTime extends BgsTurnValueBuilder {
 			formatDate(new Date(today - dayInPast * 24 * 60 * 60 * 1000)),
 			formatDate(new Date(today - (dayInPast - 1) * 24 * 60 * 60 * 1000)),
 		]);
-		console.log('dates', dates);
 
 		const queries = dates.map(
 			pair => `
@@ -55,14 +53,11 @@ export class BgsDmgPerTurnOverTime extends BgsTurnValueBuilder {
 		const mysql = await getConnection();
 		const resultsArray: any[] = await Promise.all(
 			queries.map(query => {
-				console.log('running query', query);
 				return mysql.query(query);
 			}),
 		);
 		const dbResults: any[] = resultsArray.reduce((a, b) => a.concat(b), []);
-		console.log('got db results', dbResults.length, dbResults.length > 0 && dbResults[0]);
 		const result: readonly string[] = dbResults.map(result => result.reviewId);
-		console.log('filtered db results', result.length);
 		return result;
 	}
 
@@ -84,7 +79,6 @@ export class BgsDmgPerTurnOverTime extends BgsTurnValueBuilder {
 			)
 			.valueSeq()
 			.toArray();
-		console.log('result', result);
 		return result;
 	}
 
@@ -101,9 +95,7 @@ export class BgsDmgPerTurnOverTime extends BgsTurnValueBuilder {
 			data: number;
 		}[],
 	): string {
-		console.log('building csv', JSON.stringify(sortedValues, null, 4));
 		const values = sortedValues.map(info => `${info.key},${info.turn},${info.data}`).join('\n');
-		console.log('final values', values);
 		s3.writeFile(values, 'com.zerotoheroes.mr', 'bgs-dmg-per-turn-over-time.csv');
 		return null;
 	}

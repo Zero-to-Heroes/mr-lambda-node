@@ -29,7 +29,6 @@ export class GalakrondDamageToHero implements Implementation<any> {
 		// `,
 		// );
 		const result = dbResults.map(result => result.reviewId);
-		// console.log('loaded DB results', result.length);
 		return result;
 	}
 
@@ -46,11 +45,9 @@ export class GalakrondDamageToHero implements Implementation<any> {
 		newResult: ReduceOutput<any>,
 	): Promise<ReduceOutput<any>> {
 		if (!currentResult || !currentResult.output) {
-			console.log('currentResult is null');
 			return newResult;
 		}
 		if (!newResult || !newResult.output) {
-			console.log('newResult is null');
 			return currentResult;
 		}
 		return {

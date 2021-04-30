@@ -13,7 +13,6 @@ export class BgsCompsBuilder {
 			.findall('.//Player')
 			.find(player => player.get('isMainPlayer') === 'false');
 		const opponentPlayerEntityId = opponentPlayerElement.get('id');
-		// console.log('mainPlayerEntityId', opponentPlayerEntityId);
 		const structure = {
 			entities: {},
 			boardByTurn: Map.of(),
@@ -45,10 +44,8 @@ export class BgsCompsBuilder {
 		if (element.tag === 'ShowEntity' && element.get('cardID') === 'TB_BaconShop_HP_061e') {
 			const attachedTo = parseInt(element.find(`.Tag[@tag='${GameTag.ATTACHED}']`)?.get('value') || '-1');
 			if (structure.entities[attachedTo]) {
-				// console.log('modifying attack', attachedTo, structure.entities[attachedTo]);
 				// We don't need to remove this flag, as new entities are created for each round?
 				structure.entities[attachedTo].isDeathwing = true;
-				// console.log('modifyed attack', attachedTo, structure.entities[attachedTo]);
 			}
 		}
 		if (element.tag === 'TagChange') {
@@ -57,11 +54,9 @@ export class BgsCompsBuilder {
 					structure.entities[element.get('entity')].controller = parseInt(element.get('value'));
 				}
 				if (parseInt(element.get('tag')) === GameTag.ZONE) {
-					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 					structure.entities[element.get('entity')].zone = parseInt(element.get('value'));
 				}
 				if (parseInt(element.get('tag')) === GameTag.ATK) {
-					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 					// console.log(
 					// 	'changing attack',
 					// 	structure.entities[element.get('entity')],
@@ -73,11 +68,9 @@ export class BgsCompsBuilder {
 					}
 				}
 				if (parseInt(element.get('tag')) === GameTag.HEALTH) {
-					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 					structure.entities[element.get('entity')].health = parseInt(element.get('value'));
 				}
 				if (parseInt(element.get('tag')) === GameTag.ZONE_POSITION) {
-					// console.log('entity', child.get('entity'), structure.entities[child.get('entity')]);
 					structure.entities[element.get('entity')].zonePosition = parseInt(element.get('value'));
 				}
 			}
@@ -85,7 +78,6 @@ export class BgsCompsBuilder {
 				parseInt(element.get('tag')) === GameTag.NEXT_STEP &&
 				parseInt(element.get('value')) === Step.MAIN_START_TRIGGERS
 			) {
-				// console.log('considering parent', parent.get('entity'), parent);
 				if (parent && parent.get('entity') === opponentPlayerEntityId) {
 					const playerEntitiesOnBoard = Object.values(structure.entities)
 						.map(entity => entity as any)
@@ -106,7 +98,6 @@ export class BgsCompsBuilder {
 					structure.boardByTurn = structure.boardByTurn.set(structure.currentTurn, playerEntitiesOnBoard);
 					structure.currentTurn++;
 				}
-				// console.log('board for turn', structure.currentTurn, mainPlayerId, '\n', playerEntitiesOnBoard);
 			}
 		}
 
@@ -114,7 +105,6 @@ export class BgsCompsBuilder {
 		if (children && children.length > 0) {
 			for (const child of children) {
 				this.parseElement(child, mainPlayerId, opponentPlayerEntityId, element, structure);
-				// console.log('iterating', child.attrib);
 			}
 		}
 	}

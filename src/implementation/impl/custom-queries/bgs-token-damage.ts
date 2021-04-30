@@ -28,7 +28,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 			LIMIT 2
 		`;
 		query = query || defaultQuery;
-		console.log('running query', query);
 		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
 		return result;
@@ -45,7 +44,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 			await cards.initializeCardsDb();
 			const parser = new HeroAttackParser();
 			parseBgsGame(replay, [parser]);
-			console.log('transforming', parser.entitiesThatDealHeroDamagePerTurn.toJS());
 			const damagePerTurn: readonly DamageInfo[] = parser.entitiesThatDealHeroDamagePerTurn
 				.keySeq()
 				// .filter(turn => turn > 0)
@@ -91,7 +89,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 				tokenDamagePerTurn: damagePerTurn,
 				damagePerCreator: damagePerCreator,
 			};
-			console.log('output', JSON.stringify(output));
 			return output;
 		} catch (e) {
 			console.error('error while parsing', e, miniReview);
@@ -105,11 +102,9 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 		newResult: ReduceOutput<TokenOutput>,
 	): Promise<ReduceOutput<TokenOutput>> {
 		if (!currentResult?.output?.tokenDamagePerTurn?.length) {
-			console.log('currentResult is empty', currentResult);
 			return newResult;
 		}
 		if (!newResult?.output?.tokenDamagePerTurn?.length) {
-			console.log('newResult is empty', newResult);
 			return currentResult;
 		}
 		return {
@@ -130,7 +125,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 		firstOutput: readonly DamageInfo[],
 		secondOutput: readonly DamageInfo[],
 	): readonly DamageInfo[] {
-		// console.log('mergeDamagePerTurn', firstOutput, secondOutput);
 		const maxTurn = Math.max(...firstOutput.map(info => info.turn), ...secondOutput.map(info => info.turn));
 		const result = [];
 		for (let i = 1; i <= maxTurn; i++) {
@@ -152,7 +146,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 				damageDistribution: damageDistribution,
 			});
 		}
-		// console.log('result is', result);
 		return result;
 	}
 
@@ -160,18 +153,15 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 		firstOutput: readonly CreatorInfo[],
 		secondOutput: readonly CreatorInfo[],
 	): readonly CreatorInfo[] {
-		// console.log('mergeDamagePerCreator', firstOutput, secondOutput);
 		const allCreators = [
 			...firstOutput.map(info => info.creatorCardId),
 			...secondOutput.map(info => info.creatorCardId),
 		];
 		const uniqueCreators: string[] = [...new Set(allCreators)] as string[];
-		// console.log('allCreators', allCreators, uniqueCreators);
 		const result: CreatorInfo[] = [];
 		for (const creator of uniqueCreators) {
 			const firstInfo = firstOutput.find(info => info.creatorCardId === creator);
 			const secondInfo = secondOutput.find(info => info.creatorCardId === creator);
-			// console.log('firstInfo', firstInfo, 'secondInfo', secondInfo);
 			const totalDamageForCreator = (firstInfo?.totalTokenDamage || 0) + (secondInfo?.totalTokenDamage || 0);
 			const damageDistribution = this.mergeDamageDistribution(
 				firstInfo?.damageDistribution || {},
@@ -187,7 +177,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 				damageDistribution: damageDistribution,
 			});
 		}
-		// console.log('result is', result);
 		return result;
 	}
 
@@ -208,7 +197,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 
 	public async transformOutput(output: ReduceOutput<TokenOutput>): Promise<ReduceOutput<TokenOutput>> {
 		await cards.initializeCardsDb();
-		console.log('transforming output', output);
 		const result: ReduceOutput<TokenOutput> = {
 			output: {
 				tokenDamagePerTurn: output.output.tokenDamagePerTurn
@@ -282,7 +270,6 @@ export class BgsTokenDamage implements Implementation<TokenOutput> {
 			.join('\n');
 		s3.writeFile(csvTurnOutput, 'com.zerotoheroes.mr', 'bgs-token-damage-turn.csv');
 
-		console.log('final result', result);
 		return result;
 	}
 
