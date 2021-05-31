@@ -1,5 +1,5 @@
 {
-	"name": "mr-lambda-node",
+	"name": "@firestone-hs/mr-lambda-node",
 	"version": "1.0.0",
 	"description": "",
 	"scripts": {
@@ -9,7 +9,10 @@
 		"build": "npm audit fix && webpack --env.buildEnv=prod --color",
 		"package": "sam package --template-file template.yaml --s3-bucket com.zerotoheroes.artifact --output-template-file template.packaged.yaml",
 		"deploy": "sam deploy --template-file template.packaged.yaml --stack-name MRLambdaStack --capabilities CAPABILITY_IAM",
-		"clean": "rm -rf -v dist/*"
+		"clean": "rm -rf -v dist/*",
+		"full-deploy": "npm run build && npm run package && npm run deploy",
+		"increment-version": "npm --no-git-tag-version version patch && git add . && git commit -m \"increment version\"",
+		"publish-version": "rm -rf dist && tsc && rm -rf dist/node_modules && npm publish --access public"
 	},
 	"repository": {},
 	"author": "",
@@ -17,7 +20,7 @@
 	"private": true,
 	"dependencies": {
 		"@firestone-hs/hs-replay-xml-parser": "0.0.66",
-		"@firestone-hs/reference-data": "^0.1.87",
+		"@firestone-hs/reference-data": "^0.1.127",
 		"@firestone-hs/replay-parser": "^1.1.29",
 		"aws-sdk": "^2.524.0",
 		"cross-fetch": "^3.0.6",
