@@ -174,11 +174,11 @@ export const getLastBattlegroundsPatch = async (): Promise<number> => {
 class EntityBuffParser implements Parser {
 	private validBuffers = [
 		CardIds.NonCollectible.Neutral.LightfangEnforcer,
-		CardIds.NonCollectible.Neutral.LightfangEnforcerTavernBrawl,
+		CardIds.NonCollectible.Neutral.LightfangEnforcerBattlegrounds,
 		CardIds.NonCollectible.Neutral.LilRag,
-		CardIds.NonCollectible.Neutral.LilRagTavernBrawl,
+		CardIds.NonCollectible.Neutral.LilRagBattlegrounds,
 		// CardIds.NonCollectible.Neutral.NomiKitchenNightmare,
-		// CardIds.NonCollectible.Neutral.NomiKitchenNightmareTavernBrawl,
+		// CardIds.NonCollectible.Neutral.NomiKitchenNightmareBattlegrounds,
 	];
 
 	buffsForThisTurn: readonly BuffApplied[] = [];
@@ -234,7 +234,7 @@ class EntityBuffParser implements Parser {
 					if (
 						[
 							CardIds.NonCollectible.Neutral.LightfangEnforcer,
-							CardIds.NonCollectible.Neutral.LightfangEnforcerTavernBrawl,
+							CardIds.NonCollectible.Neutral.LightfangEnforcerBattlegrounds,
 						].includes(cardId) &&
 						totalBuffValue % 4 !== 0
 					) {
