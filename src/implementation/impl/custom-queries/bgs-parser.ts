@@ -154,7 +154,7 @@ const normalizeHeroCardId = (heroCardId: string): string => {
 	}
 
 	// Generic handling of BG hero skins, hoping they will keep the same pattern
-	const bgHeroSkinMatch = heroCardId.match(/(.*)_SKIN_.*/g);
+	const bgHeroSkinMatch = heroCardId.match(/(.*)_SKIN_.*/);
 	if (bgHeroSkinMatch) {
 		return bgHeroSkinMatch.groups[1];
 	}
