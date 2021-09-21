@@ -173,12 +173,12 @@ export const getLastBattlegroundsPatch = async (): Promise<number> => {
 // Keep only the games where at least one buff of any of them applied
 class EntityBuffParser implements Parser {
 	private validBuffers = [
-		CardIds.NonCollectible.Neutral.LightfangEnforcer,
-		CardIds.NonCollectible.Neutral.LightfangEnforcerBattlegrounds,
-		CardIds.NonCollectible.Neutral.LilRag,
-		CardIds.NonCollectible.Neutral.LilRagBattlegrounds,
-		// CardIds.NonCollectible.Neutral.NomiKitchenNightmare,
-		// CardIds.NonCollectible.Neutral.NomiKitchenNightmareBattlegrounds,
+		CardIds.LightfangEnforcer,
+		CardIds.LightfangEnforcerBattlegrounds,
+		CardIds.LilRag,
+		CardIds.LilRagBattlegrounds,
+		// CardIds.NomiKitchenNightmare,
+		// CardIds.NomiKitchenNightmareBattlegrounds,
 	];
 
 	buffsForThisTurn: readonly BuffApplied[] = [];
@@ -192,7 +192,7 @@ class EntityBuffParser implements Parser {
 			}
 
 			const buffingCardId = structure.entities[parseInt(element.get('entity'))]?.cardId;
-			if (!this.validBuffers.includes(buffingCardId)) {
+			if (!this.validBuffers.includes(buffingCardId as CardIds)) {
 				return;
 			}
 
@@ -232,10 +232,9 @@ class EntityBuffParser implements Parser {
 					const buffsForCard = groupedByEnchantments[cardId];
 					const totalBuffValue = buffsForCard.map(buff => buff.buffValue).reduce((a, b) => a + b, 0);
 					if (
-						[
-							CardIds.NonCollectible.Neutral.LightfangEnforcer,
-							CardIds.NonCollectible.Neutral.LightfangEnforcerBattlegrounds,
-						].includes(cardId) &&
+						[CardIds.LightfangEnforcer, CardIds.LightfangEnforcerBattlegrounds].includes(
+							cardId as CardIds,
+						) &&
 						totalBuffValue % 4 !== 0
 					) {
 						console.error('incorrect buff value', cardId, totalBuffValue, buffsForCard);

@@ -315,14 +315,14 @@ class HeroAttackParser implements Parser {
 					.filter(
 						entity =>
 							structure.entities[entity.creatorEntityId].cardId !==
-							CardIds.NonCollectible.Neutral.Baconshop8playerenchantEnchantmentBattlegrounds,
+							CardIds.Baconshop8playerenchantEnchantmentBattlegrounds,
 					)
 					.filter(entity => entity.hasBeenReborn !== 1)
 					.filter(entity => entity.summonedInCombat)
 					.filter(
 						entity =>
 							structure.entities[entity.creatorEntityId].cardId !==
-							CardIds.NonCollectible.Neutral.Baconshop8playerenchantEnchantmentBattlegrounds,
+							CardIds.Baconshop8playerenchantEnchantmentBattlegrounds,
 					);
 				this.entitiesThatDealHeroDamageThisTurn = tokensThatDamage.map(entity => entity.cardId);
 				this.creatorsThatDealHeroDamageThisTurn = tokensThatDamage
@@ -334,8 +334,7 @@ class HeroAttackParser implements Parser {
 					.filter(
 						info =>
 							info.creatorCardId &&
-							info.creatorCardId !==
-								CardIds.NonCollectible.Neutral.Baconshop8playerenchantEnchantmentBattlegrounds,
+							info.creatorCardId !== CardIds.Baconshop8playerenchantEnchantmentBattlegrounds,
 					);
 				// .map(entity => ({
 				// 	id: entity.entityId,

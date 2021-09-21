@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { AllCardsService, allDuelsTreasureCardIds, CardClass } from '@firestone-hs/reference-data';
+import { AllCardsService, allDuelsTreasureCardIds, CardClass, CardIds } from '@firestone-hs/reference-data';
 import { decode } from 'deckstrings';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
@@ -77,7 +77,7 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 			.reduce((a, b) => a.concat(b), [])
 			.map(cardDbfId => cards.getCardFromDbfId(cardDbfId))
 			.filter(card => card)
-			.filter(card => allDuelsTreasureCardIds.includes(card.id));
+			.filter(card => allDuelsTreasureCardIds.includes(card.id as CardIds));
 
 		const result: IntermediaryResult = {};
 		// Init everything to not have to worry about empty structures later on
