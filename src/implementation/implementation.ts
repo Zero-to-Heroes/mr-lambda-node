@@ -8,6 +8,7 @@ import { BgsDmgPerTurnOverTime } from './impl/custom-queries/bgs-damage-per-turn
 import { BgsTokenDamage } from './impl/custom-queries/bgs-token-damage';
 import { BgsTotalBuff } from './impl/custom-queries/bgs-total-buff';
 import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
+import { MercsPveTreasures } from './impl/custom-queries/merc-pve-treasures';
 import { HeroicDuelsTreasures } from './impl/heroic-duels-treasures';
 
 export interface Implementation<T> {
@@ -36,6 +37,8 @@ export const getImplementation = (implementationId: string): Implementation<any>
 			return new BgsTokenDamage();
 		case 'bgs-total-buff':
 			return new BgsTotalBuff();
+		case 'merc-pve-treasures':
+			return new MercsPveTreasures();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}

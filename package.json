@@ -19,7 +19,7 @@
 	"license": "MIT",
 	"private": true,
 	"dependencies": {
-		"@firestone-hs/hs-replay-xml-parser": "0.0.78",
+		"@firestone-hs/hs-replay-xml-parser": "0.0.89",
 		"@firestone-hs/reference-data": "^0.1.171",
 		"@firestone-hs/replay-parser": "^1.1.29",
 		"aws-sdk": "^2.524.0",
