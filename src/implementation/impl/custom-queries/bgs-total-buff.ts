@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { BlockType, CardIds, GameTag } from '@firestone-hs/reference-data';
+import { AllCardsService, BlockType, CardIds, GameTag } from '@firestone-hs/reference-data';
 import { Element } from 'elementtree';
 import { MiniReview } from '../../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../../mr-lambda-common/models/reduce-output';
-import { AllCardsService } from '../../../mr-lambda-common/services/cards';
 import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { S3 } from '../../../mr-lambda-common/services/s3';
 import { groupByFunction, http } from '../../../mr-lambda-common/services/utils';
