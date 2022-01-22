@@ -31,7 +31,7 @@
 		"mongodb": "^3.5.2",
 		"mysql": "^2.17.1",
 		"ngx-logger": "3.3.11",
-		"node-fetch": "^2.6.1",
+		"node-fetch": "^3.1.1",
 		"pako": "^1.0.11",
 		"sax": "1.2.4",
 		"serverless-mysql": "^1.5.1",
