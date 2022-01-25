@@ -1,6 +1,6 @@
 {
 	"name": "@firestone-hs/mr-lambda-node",
-	"version": "1.0.20",
+	"version": "1.0.21",
 	"description": "",
 	"scripts": {
 		"lint": "eslint --color --fix --ext .ts .",
