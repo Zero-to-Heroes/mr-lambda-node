@@ -4,6 +4,7 @@ import { ReduceOutput } from '../mr-lambda-common/models/reduce-output';
 import { BattlegroundsGroupedQueries } from './impl/bgs-grouped/battlegrounds-grouped-queries';
 import { BuildAiDecklists } from './impl/build-ai-decklists';
 import { CasualDuelsTreasures } from './impl/casual-duels-treasures';
+import { BgMasterNguyenHpDiscovers } from './impl/custom-queries/bg-nguyen-hp-discovers';
 import { BgsDmgPerTurnOverTime } from './impl/custom-queries/bgs-damage-per-turn-over-time';
 import { BgsTokenDamage } from './impl/custom-queries/bgs-token-damage';
 import { BgsTotalBuff } from './impl/custom-queries/bgs-total-buff';
@@ -39,6 +40,8 @@ export const getImplementation = (implementationId: string): Implementation<any>
 			return new BgsTotalBuff();
 		case 'merc-pve-treasures':
 			return new MercsPveTreasures();
+		case 'nguyen-hp':
+			return new BgMasterNguyenHpDiscovers();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}
