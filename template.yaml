@@ -90,16 +90,16 @@ Resources:
                         Input: '{ "jobName": "bgs-grouped-queries", "query": null, "implementation": "bgs-grouped-queries" }'
                         Schedule: cron(0 1 */2 * ? *)
                 # Build duels treasure winrates
-                CasualDuelsTreasureTrigger:
-                    Type: Schedule
-                    Properties:
-                        Input: '{ "jobName": "casual-duels-treasure", "query": null, "implementation": "casual-duels-treasure" }'
-                        Schedule: cron(0 1 2-31/2 * ? *)
-                HeroicDuelsTreasureTrigger:
-                    Type: Schedule
-                    Properties:
-                        Input: '{ "jobName": "heroic-duels-treasure", "query": null, "implementation": "heroic-duels-treasure" }'
-                        Schedule: cron(0 2 2-31/2 * ? *)
+                # CasualDuelsTreasureTrigger:
+                #     Type: Schedule
+                #     Properties:
+                #         Input: '{ "jobName": "casual-duels-treasure", "query": null, "implementation": "casual-duels-treasure" }'
+                #         Schedule: cron(0 1 2-31/2 * ? *)
+                # HeroicDuelsTreasureTrigger:
+                #     Type: Schedule
+                #     Properties:
+                #         Input: '{ "jobName": "heroic-duels-treasure", "query": null, "implementation": "heroic-duels-treasure" }'
+                #         Schedule: cron(0 2 2-31/2 * ? *)
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:

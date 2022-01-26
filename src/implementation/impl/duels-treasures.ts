@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { AllCardsService, allDuelsTreasureCardIds, CardClass, CardIds } from '@firestone-hs/reference-data';
+import { AllCardsService, allDuelsHeroes, allDuelsTreasureCardIds, CardClass, CardIds } from '@firestone-hs/reference-data';
 import { decode } from 'deckstrings';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
@@ -12,19 +12,20 @@ import { loadMergedOutput } from './battlegrounds-implementation-common';
 // Data retrieved from the DB, might be worth updating it from time to time
 const cards = new AllCardsService();
 
-const PLAYER_CLASSES = [
-	CardClass[CardClass.DEMONHUNTER].toLowerCase(),
-	CardClass[CardClass.DRUID].toLowerCase(),
-	CardClass[CardClass.HUNTER].toLowerCase(),
-	CardClass[CardClass.MAGE].toLowerCase(),
-	CardClass[CardClass.PALADIN].toLowerCase(),
-	CardClass[CardClass.PRIEST].toLowerCase(),
-	CardClass[CardClass.ROGUE].toLowerCase(),
-	CardClass[CardClass.SHAMAN].toLowerCase(),
-	CardClass[CardClass.WARLOCK].toLowerCase(),
-	CardClass[CardClass.WARRIOR].toLowerCase(),
-];
+// const PLAYER_CLASSES = [
+// 	CardClass[CardClass.DEMONHUNTER].toLowerCase(),
+// 	CardClass[CardClass.DRUID].toLowerCase(),
+// 	CardClass[CardClass.HUNTER].toLowerCase(),
+// 	CardClass[CardClass.MAGE].toLowerCase(),
+// 	CardClass[CardClass.PALADIN].toLowerCase(),
+// 	CardClass[CardClass.PRIEST].toLowerCase(),
+// 	CardClass[CardClass.ROGUE].toLowerCase(),
+// 	CardClass[CardClass.SHAMAN].toLowerCase(),
+// 	CardClass[CardClass.WARLOCK].toLowerCase(),
+// 	CardClass[CardClass.WARRIOR].toLowerCase(),
+// ];
 
+/** @deprecated this is not used anymore */
 export class AbstractDuelsTreasures implements Implementation<any> {
 	constructor(protected readonly gameMode: 'duels' | 'paid-duels') {}
 
@@ -83,8 +84,8 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 		// Init everything to not have to worry about empty structures later on
 		for (const treasureId of allDuelsTreasureCardIds) {
 			result[treasureId] = {} as IntermediaryResultForTreasure;
-			for (const playerClass of PLAYER_CLASSES) {
-				result[treasureId][playerClass] = {
+			for (const hero of allDuelsHeroes) {
+				result[treasureId][hero] = {
 					dataPoints: 0,
 					totalWins: 0,
 					totalLosses: 0,
@@ -93,16 +94,16 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 			}
 		}
 
-		const playerClass = miniReview.playerClass;
+		const playerHero = miniReview.playerCardId;
 		treasuresInDeck.forEach(treasure => {
-			const treasureInfo: IntermediaryResultForTreasureAndClass = result[treasure.id][playerClass];
+			const treasureInfo: IntermediaryResultForTreasureAndClass = result[treasure.id][playerHero];
 			const updatedInfo = {
 				dataPoints: treasureInfo.dataPoints + 1,
 				totalWins: miniReview.result === 'won' ? treasureInfo.totalWins + 1 : treasureInfo.totalWins,
 				totalLosses: miniReview.result === 'lost' ? treasureInfo.totalLosses + 1 : treasureInfo.totalLosses,
 				totalTies: miniReview.result === 'tied' ? treasureInfo.totalTies + 1 : treasureInfo.totalTies,
 			} as IntermediaryResultForTreasureAndClass;
-			result[treasure.id][playerClass] = updatedInfo;
+			result[treasure.id][playerHero] = updatedInfo;
 		});
 		return result;
 	}
@@ -141,10 +142,10 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 		newResult: IntermediaryResultForTreasure,
 	): IntermediaryResultForTreasure {
 		const output: IntermediaryResultForTreasure = {} as IntermediaryResultForTreasure;
-		for (const playerClass of PLAYER_CLASSES) {
-			output[playerClass] = this.mergeTreasuresForClass(
-				currentResult[playerClass] || ({} as IntermediaryResultForTreasureAndClass),
-				newResult[playerClass] || ({} as IntermediaryResultForTreasureAndClass),
+		for (const hero of allDuelsHeroes) {
+			output[hero] = this.mergeTreasuresForClass(
+				currentResult[hero] || ({} as IntermediaryResultForTreasureAndClass),
+				newResult[hero] || ({} as IntermediaryResultForTreasureAndClass),
 			);
 		}
 		return output;
@@ -177,15 +178,15 @@ export class AbstractDuelsTreasures implements Implementation<any> {
 			.map(treasureId => {
 				const treasure: IntermediaryResultForTreasure = mergedOutput.output[treasureId];
 				return Object.keys(treasure).map(
-					playerClass =>
+					hero =>
 						({
 							periodStart: periodDate,
 							cardId: treasureId,
-							playerClass: playerClass,
-							matchesPlayed: treasure[playerClass].dataPoints,
-							totalLosses: treasure[playerClass].totalLosses,
-							totalTies: treasure[playerClass].totalTies,
-							totalWins: treasure[playerClass].totalWins,
+							playerClass: hero,
+							matchesPlayed: treasure[hero].dataPoints,
+							totalLosses: treasure[hero].totalLosses,
+							totalTies: treasure[hero].totalTies,
+							totalWins: treasure[hero].totalWins,
 						} as TreasureAndClassStatForDb),
 				);
 			})
