@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { AllCardsService, allDuelsHeroes, allDuelsTreasureCardIds, CardClass, CardIds } from '@firestone-hs/reference-data';
+import {
+	AllCardsService,
+	allDuelsHeroes,
+	allDuelsTreasureCardIds,
+	CardClass,
+	CardIds,
+} from '@firestone-hs/reference-data';
 import { decode } from 'deckstrings';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
