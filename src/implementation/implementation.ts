@@ -10,6 +10,7 @@ import { BgsDmgPerTurnOverTime } from './impl/custom-queries/bgs-damage-per-turn
 import { BgsTokenDamage } from './impl/custom-queries/bgs-token-damage';
 import { BgsTotalBuff } from './impl/custom-queries/bgs-total-buff';
 import { BgsWarbandStatsOverTime } from './impl/custom-queries/bgs-warband-stats-over-time';
+import { DuelsPromoteEffects } from './impl/custom-queries/duels-promote-effects';
 import { MercsPveTreasures } from './impl/custom-queries/merc-pve-treasures';
 import { HeroicDuelsTreasures } from './impl/heroic-duels-treasures';
 
@@ -45,6 +46,8 @@ export const getImplementation = (implementationId: string): Implementation<any>
 			return new BgMasterNguyenHpDiscovers();
 		case 'alex-bg-hp':
 			return new BgAlexHpDiscovers();
+		case 'duels-promote-effects':
+			return new DuelsPromoteEffects();
 		default:
 			throw new Error('Invalid implementation ' + implementationId);
 	}
