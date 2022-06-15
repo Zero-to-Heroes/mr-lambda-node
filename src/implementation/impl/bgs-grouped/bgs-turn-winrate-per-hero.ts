@@ -22,6 +22,7 @@ export class BgsCombatWinrate extends BgsGroupedOperation {
 			WHERE reviewId = '${miniReview.id}'
 		`;
 		const rawResults = await mysql.query(loadQuery);
+		await mysql.end();
 		const postMatchStats: any[] = (rawResults as any[]).filter(
 			result => result.jsonStats && result.jsonStats.length <= 50000,
 		);

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { MiniReview } from '../../../mr-lambda-common/models/mini-review';
+import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { TotalDataTurnInfo } from '../../total-data-turn-info';
 import { TurnInfoForDb } from './turn-info-for-db';
 
@@ -28,7 +29,7 @@ export abstract class BgsGroupedOperation {
 		return result;
 	}
 
-	protected abstract async extractData(
+	protected abstract extractData(
 		replay: Replay,
 		miniReview: MiniReview,
 		replayXml: string,
@@ -95,7 +96,7 @@ export abstract class BgsGroupedOperation {
 		return result;
 	}
 
-	public async saveInDb(periodDate: string, resultToSave: IntermediaryResult, mysql) {
+	public async saveInDb(periodDate: string, resultToSave: IntermediaryResult) {
 		const stats: readonly TurnInfoForDb[] = Object.keys(resultToSave)
 			.map(playerCardId => {
 				const dataForPlayer: IntermediaryResultForKey = resultToSave[playerCardId];
@@ -136,7 +137,9 @@ export abstract class BgsGroupedOperation {
 			(periodStart, heroCardId, turn, dataPoints, totalValue)
 			VALUES ${values}
 		`;
+		const mysql = await getConnection();
 		await mysql.query(query);
+		await mysql.end();
 	}
 
 	protected abstract getTableName(): string;

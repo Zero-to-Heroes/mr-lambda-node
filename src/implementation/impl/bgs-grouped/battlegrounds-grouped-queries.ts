@@ -89,11 +89,9 @@ export class BattlegroundsGroupedQueries implements Implementation<any> {
 		);
 
 		const periodDate = formatDate(new Date());
-		const mysql = await getConnection();
-
 		for (const key of this.allKeys) {
 			const resultToSave = mergedOutput.output[key];
-			await this.getImplementation(key).saveInDb(periodDate, resultToSave, mysql);
+			await this.getImplementation(key).saveInDb(periodDate, resultToSave);
 		}
 
 		return mergedOutput;

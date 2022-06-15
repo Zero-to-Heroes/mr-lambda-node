@@ -2,6 +2,7 @@
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { Race } from '@firestone-hs/reference-data';
 import { MiniReview } from '../../../mr-lambda-common/models/mini-review';
+import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { BgsTribesBuilder } from './../details/bgs-tribes-builder';
 import { TotalDataTribeInfo } from './total-data-tribe-info';
 
@@ -96,7 +97,7 @@ export class BgsHeroesTribe {
 		return result;
 	}
 
-	public async saveInDb(periodDate: string, resultToSave: any, mysql) {
+	public async saveInDb(periodDate: string, resultToSave: any) {
 		const stats: readonly InfoForDb[] = Object.keys(resultToSave)
 			.map(playerCardId => {
 				const dataForPlayer: IntermediaryResultForKey = resultToSave[playerCardId];
@@ -137,7 +138,9 @@ export class BgsHeroesTribe {
 			(periodStart, heroCardId, tribe, dataPoints, totalValue)
 			VALUES ${values}
 		`;
+		const mysql = await getConnection();
 		await mysql.query(query);
+		await mysql.end();
 	}
 }
 

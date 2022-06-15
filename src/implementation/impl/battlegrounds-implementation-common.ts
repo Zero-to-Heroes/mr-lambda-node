@@ -10,14 +10,14 @@ export const loadBgReviewIds = async (
 	lastPatch?: number,
 ): Promise<readonly string[]> => {
 	const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
-	const mysql = await getConnection();
 	const lastJobQuery = `
-		SELECT * FROM mr_job_summary
-		WHERE jobName = '${jobName}'
-		AND relevantPatch = '${lastBattlegroundsPatch}'
-		ORDER BY lastDateRan DESC
-		LIMIT 1
+	SELECT * FROM mr_job_summary
+	WHERE jobName = '${jobName}'
+	AND relevantPatch = '${lastBattlegroundsPatch}'
+	ORDER BY lastDateRan DESC
+	LIMIT 1
 	`;
+	const mysql = await getConnection();
 	const lastJobData: readonly any[] = await mysql.query(lastJobQuery);
 
 	const startDate = lastJobData && lastJobData.length > 0 ? lastJobData[0].lastDateRan : null;
@@ -38,6 +38,7 @@ export const loadBgReviewIds = async (
 	`;
 	query = query || defaultQuery;
 	const dbResults: any[] = await mysql.query(query);
+	await mysql.end();
 	const result: readonly string[] = dbResults.map(result => result.reviewId);
 	return result;
 };
@@ -48,18 +49,18 @@ export const loadMergedOutput = async <T>(
 	mergeReduceEvents: (o1: ReduceOutput<T>, o2: ReduceOutput<T>) => Promise<ReduceOutput<T>>,
 ): Promise<ReduceOutput<T>> => {
 	const lastBattlegroundsPatch = await getLastBattlegroundsPatch();
-	const mysql = await getConnection();
 	const lastJobQuery = `
-		SELECT * FROM mr_job_summary
-		WHERE jobName = '${jobName}'
-		AND relevantPatch = '${lastBattlegroundsPatch}'
-		ORDER BY lastDateRan DESC
-		LIMIT 1
+	SELECT * FROM mr_job_summary
+	WHERE jobName = '${jobName}'
+	AND relevantPatch = '${lastBattlegroundsPatch}'
+	ORDER BY lastDateRan DESC
+	LIMIT 1
 	`;
+	let mysql = await getConnection();
 	const lastJobData: readonly any[] = await mysql.query(lastJobQuery);
+	await mysql.end();
 
 	const lastOutput = lastJobData && lastJobData.length > 0 ? JSON.parse(lastJobData[0].dataAtJobEnd) : {};
-
 	const mergedOutput = await mergeReduceEvents(output, lastOutput);
 
 	const lastDateRan = new Date();
@@ -67,7 +68,9 @@ export const loadMergedOutput = async <T>(
 		INSERT INTO mr_job_summary (jobName, lastDateRan, relevantPatch, dataAtJobEnd)
 		VALUES ('${jobName}', '${formatDate(lastDateRan)}', ${lastBattlegroundsPatch}, '${JSON.stringify(mergedOutput)}')
 	`;
+	mysql = await getConnection();
 	await mysql.query(saveQuery);
+	await mysql.end();
 
 	return mergedOutput;
 };
