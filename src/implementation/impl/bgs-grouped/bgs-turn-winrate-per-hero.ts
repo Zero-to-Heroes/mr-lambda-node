@@ -2,7 +2,7 @@
 import { BgsPostMatchStats, Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { inflate } from 'pako';
 import { MiniReview } from '../../../mr-lambda-common/models/mini-review';
-import { getConnection as getConnectionBgs } from '../../../mr-lambda-common/services/rds-bgs';
+import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { TotalDataTurnInfo } from '../../total-data-turn-info';
 import { BgsGroupedOperation } from './battlegrounds-turn-value-builder';
 
@@ -16,7 +16,7 @@ export class BgsCombatWinrate extends BgsGroupedOperation {
 		miniReview: MiniReview,
 		replayXml: string,
 	): Promise<readonly TotalDataTurnInfo[]> {
-		const mysql = await getConnectionBgs();
+		const mysql = await getConnection();
 		const loadQuery = `
 			SELECT * FROM bgs_single_run_stats
 			WHERE reviewId = '${miniReview.id}'

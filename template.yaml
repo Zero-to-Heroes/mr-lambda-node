@@ -83,7 +83,7 @@ Resources:
             Tags:
                 LambdaName: mr-lambda-driver
             Events:
-                # Nightly build of the stats
+                # Bi-nightly build of the stats
                 BgsGroupedQueriesTrigger:
                     Type: Schedule
                     Properties:

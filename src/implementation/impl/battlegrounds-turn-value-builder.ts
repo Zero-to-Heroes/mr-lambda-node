@@ -3,7 +3,7 @@ import { NumericTurnInfo } from '@firestone-hs/hs-replay-xml-parser/dist/lib/mod
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
 import { ReduceOutput } from '../../mr-lambda-common/models/reduce-output';
-import { getConnection as getConnectionBgs } from '../../mr-lambda-common/services/rds-bgs';
+import { getConnection } from '../../mr-lambda-common/services/rds';
 import { Implementation } from '../implementation';
 import { TotalDataTurnInfo } from '../total-data-turn-info';
 import { loadBgReviewIds, loadMergedOutput } from './battlegrounds-implementation-common';
@@ -149,7 +149,7 @@ export abstract class BgsTurnValueBuilder implements Implementation<any> {
 			normalizedValues[key] = this.normalize(mergedOutput.output[key]);
 		}
 
-		const mysqlBgs = await getConnectionBgs();
+		const mysqlBgs = await getConnection();
 		const creationDate = new Date().toISOString();
 		const sortedValues = Object.keys(normalizedValues)
 			.map(key => {
