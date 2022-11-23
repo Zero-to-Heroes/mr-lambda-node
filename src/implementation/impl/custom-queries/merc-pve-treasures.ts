@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { AllCardsService, GameTag } from '@firestone-hs/reference-data';
+import { GameTag } from '@firestone-hs/reference-data';
 import { ReduceOutput } from '../../../mr-lambda-common/models/reduce-output';
 import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { S3 } from '../../../mr-lambda-common/services/s3';
 import { Implementation } from '../../implementation';
 
-const cards = new AllCardsService();
+// const cards = new AllCardsService();
 const s3 = new S3();
 
 export class MercsPveTreasures implements Implementation<TreasureInfoOutput> {
@@ -16,7 +16,7 @@ export class MercsPveTreasures implements Implementation<TreasureInfoOutput> {
 		const defaultQuery = `
 			SELECT reviewId FROM replay_summary
 			WHERE gameMode = 'mercenaries-pve'
-			AND buildNumber >= 121569
+			AND buildNumber >= 150659
 			ORDER BY creationDate DESC
 			LIMIT 10;
 		`;
@@ -93,7 +93,7 @@ export class MercsPveTreasures implements Implementation<TreasureInfoOutput> {
 	}
 
 	public async transformOutput(output: ReduceOutput<TreasureInfoOutput>): Promise<ReduceOutput<TreasureInfoOutput>> {
-		await cards.initializeCardsDb();
+		// await cards.initializeCardsDb();
 		const totalDataPoints = output.output.cardIds.reduce((acc, info) => acc + info.dataPoints, 0);
 		const result: ReduceOutput<TreasureInfoOutput> = {
 			output: {
