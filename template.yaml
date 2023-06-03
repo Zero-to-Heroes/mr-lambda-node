@@ -62,16 +62,10 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: driver/driver.default
-            Runtime: nodejs12.x
+            Runtime: nodejs18.x
             Timeout: 880
             CodeUri: dist/driver/driver
             MemorySize: 384
-            # https://stackoverflow.com/questions/39144688/aws-lambda-invoke-not-calling-another-lambda-function-node-js
-            # VpcConfig:
-            #     SecurityGroupIds:
-            #         - sg-0ed63616362bf1a30
-            #     SubnetIds:
-            #         - subnet-0b730ca9af74a95dd
             Policies:
                 - AWSLambdaVPCAccessExecutionRole
                 - SecretsManagerReadWrite
@@ -104,7 +98,7 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: mapper-watcher/mapper-watcher.default
-            Runtime: nodejs12.x
+            Runtime: nodejs18.x
             CodeUri: dist/mapper-watcher/mapper-watcher
             MemorySize: 256
             # https://stackoverflow.com/questions/39144688/aws-lambda-invoke-not-calling-another-lambda-function-node-js
@@ -135,7 +129,7 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: reducer-watcher/reducer-watcher.default
-            Runtime: nodejs12.x
+            Runtime: nodejs18.x
             CodeUri: dist/reducer-watcher/reducer-watcher
             MemorySize: 128
             # https://stackoverflow.com/questions/39144688/aws-lambda-invoke-not-calling-another-lambda-function-node-js
@@ -166,7 +160,7 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: aggregator-watcher/aggregator-watcher.default
-            Runtime: nodejs12.x
+            Runtime: nodejs18.x
             CodeUri: dist/aggregator-watcher/aggregator-watcher
             MemorySize: 258
             # https://stackoverflow.com/questions/39144688/aws-lambda-invoke-not-calling-another-lambda-function-node-js
@@ -198,7 +192,7 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: mapper/mapper.default
-            Runtime: nodejs12.x
+            Runtime: nodejs18.x
             CodeUri: dist/mapper/mapper
             MemorySize: 384
             ReservedConcurrentExecutions: 50
@@ -231,7 +225,7 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: reducer/reducer.default
-            Runtime: nodejs12.x
+            Runtime: nodejs18.x
             CodeUri: dist/reducer/reducer
             MemorySize: 384
             ReservedConcurrentExecutions: 50
@@ -264,7 +258,7 @@ Resources:
         Type: AWS::Serverless::Function
         Properties:
             Handler: reducer/reducer.default
-            Runtime: nodejs12.x
+            Runtime: nodejs18.x
             CodeUri: dist/reducer/reducer
             MemorySize: 256
             # https://stackoverflow.com/questions/39144688/aws-lambda-invoke-not-calling-another-lambda-function-node-js
