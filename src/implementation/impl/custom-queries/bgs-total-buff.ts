@@ -8,7 +8,7 @@ import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { S3 } from '../../../mr-lambda-common/services/s3';
 import { groupByFunction, http } from '../../../mr-lambda-common/services/utils';
 import { Implementation } from '../../implementation';
-import { parseBgsGame, Parser, ParsingStructure } from './bgs-parser';
+import { Parser, ParsingStructure, parseBgsGame } from './bgs-parser';
 
 const cards = new AllCardsService();
 const s3 = new S3();
@@ -226,7 +226,6 @@ class EntityBuffParser implements Parser {
 				const groupedByEnchantments: { [cardId: string]: readonly BuffApplied[] } = groupByFunction(
 					(buff: BuffApplied) => buff.cardId,
 				)(this.buffsForThisTurn);
-				// console.debug('echantments this turn', this.enchantmentsAppliedThisTurn);
 				const enchantmentsForTurn: readonly BuffApplied[] = Object.keys(groupedByEnchantments).map(cardId => {
 					const buffsForCard = groupedByEnchantments[cardId];
 					const totalBuffValue = buffsForCard.map(buff => buff.buffValue).reduce((a, b) => a + b, 0);
@@ -243,7 +242,6 @@ class EntityBuffParser implements Parser {
 						buffValue: totalBuffValue,
 					};
 				});
-				// console.debug('applied on turn ', currentTurn, enchantmentsForTurn);
 				this.buffsByTurn[currentTurn] = enchantmentsForTurn;
 			}
 			this.buffsForThisTurn = [];

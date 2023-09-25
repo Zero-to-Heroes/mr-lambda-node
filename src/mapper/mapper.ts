@@ -44,15 +44,6 @@ export default async (event, context): Promise<any> => {
 			const mapOutput: MapOutput = {
 				output: currentMetric,
 			} as MapOutput;
-			console.log(
-				'Writing file ' + currentReviewId + '/' + mapEvent.reviewIds.length,
-				' with ',
-				fileKey,
-				' with contents ',
-				JSON.stringify(mapOutput, null, 4),
-				' to bucket ',
-				mapEvent.bucket,
-			);
 			const result = await s3.writeFile(mapOutput, mapEvent.bucket, fileKey);
 			await db.updateEntry(
 				mapEvent.jobRootFolder,

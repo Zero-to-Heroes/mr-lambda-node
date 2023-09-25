@@ -9,7 +9,7 @@ import { getConnection } from '../../../mr-lambda-common/services/rds';
 import { S3 } from '../../../mr-lambda-common/services/s3';
 import { http } from '../../../mr-lambda-common/services/utils';
 import { Implementation } from '../../implementation';
-import { parseBgsGame, Parser, ParsingEntity, ParsingStructure } from './bgs-parser';
+import { Parser, ParsingEntity, ParsingStructure, parseBgsGame } from './bgs-parser';
 
 const cards = new AllCardsService();
 const s3 = new S3();
@@ -335,12 +335,6 @@ class HeroAttackParser implements Parser {
 							info.creatorCardId &&
 							info.creatorCardId !== CardIds.Baconshop8playerenchantEnchantmentBattlegrounds,
 					);
-				// .map(entity => ({
-				// 	id: entity.entityId,
-				// 	cardId: entity.cardId,
-				// 	creatorEntityId: entity.creator,
-				// }));
-				console.debug('this.entitiesThatDealHeroDamageThisTurn', this.entitiesThatDealHeroDamageThisTurn);
 			}
 		};
 	};

@@ -77,15 +77,6 @@ export class BgsTribesBuilder {
 							tribe: entity.tribe,
 							initialElement: entity.initialElement,
 						}));
-					// playerEntitiesOnBoard.forEach(minion => {
-					// 	if (minion.tribe == '-1') {
-					// 	}
-					// });
-					// console.log(
-					// 	'emitting new turn values',
-					// 	structure.currentTurn,
-					// 	JSON.stringify(playerEntitiesOnBoard, null, 4),
-					// );
 					structure.boardByTurn = structure.boardByTurn.set(structure.currentTurn, playerEntitiesOnBoard);
 					structure.currentTurn++;
 				}

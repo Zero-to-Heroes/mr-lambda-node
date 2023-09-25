@@ -64,9 +64,6 @@ const compositionForTurnParse = (structure: ParsingStructure) => {
 				),
 				summonedInCombat: structure.entities[structure.gameEntityId].boardVisualState === 2,
 			};
-			// if (structure.entities[element.get('id')].cardType === CardType.HERO) {
-			// 	console.debug('hero', structure.entities[element.get('id')]);
-			// }
 		}
 		if (structure.entities[element.get('entity')]) {
 			if (parseInt(element.get('tag')) === GameTag.CONTROLLER) {

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-use-before-define */
 import { Replay } from '@firestone-hs/hs-replay-xml-parser/dist/public-api';
-import { AllCardsService, CardType, GameTag, getBaseCardId, Zone } from '@firestone-hs/reference-data';
-import { ReferenceCard } from '@firestone-hs/reference-data';
+import { AllCardsService, CardType, GameTag, getBaseCardId, ReferenceCard, Zone } from '@firestone-hs/reference-data';
 import { encode } from 'deckstrings';
 import { Element } from 'elementtree';
 import { MiniReview } from '../../mr-lambda-common/models/mini-review';
@@ -218,17 +217,7 @@ export class BuildAiDecklists implements Implementation<any> {
 	public async transformOutput(output: ReduceOutput<any>): Promise<ReduceOutput<any>> {
 		const cards = new AllCardsService();
 		await cards.initializeCardsDb();
-		console.log(
-			'transforming output',
-			output.output.length,
-			output.output.map(out => out.numberOfGames).reduce((a, b) => a + b, 0),
-		);
 		const result = this.transform(output.output, cards);
-		console.log(
-			'transformed',
-			result.length,
-			result.map(out => out.numberOfGames).reduce((a, b) => a + b, 0),
-		);
 		return {
 			metadata: {
 				numberOfDecks: result.length,

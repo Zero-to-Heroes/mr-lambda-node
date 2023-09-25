@@ -24,10 +24,8 @@ export class DuelsPromoteEffects implements Implementation<Output> {
 			LIMIT 1000
 		`;
 		query = query || defaultQuery;
-		console.log('running query', query);
 		const dbResults: any[] = await mysql.query(query);
 		const result = dbResults.map(result => result.reviewId);
-		console.log('results', result?.length);
 		return result;
 	}
 

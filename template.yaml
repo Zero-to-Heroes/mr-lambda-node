@@ -195,7 +195,7 @@ Resources:
             Runtime: nodejs18.x
             CodeUri: dist/mapper/mapper
             MemorySize: 384
-            ReservedConcurrentExecutions: 50
+            ReservedConcurrentExecutions: 40
             # https://stackoverflow.com/questions/39144688/aws-lambda-invoke-not-calling-another-lambda-function-node-js
             # VpcConfig:
             #     SecurityGroupIds:
