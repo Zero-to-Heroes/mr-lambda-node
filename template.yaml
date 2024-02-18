@@ -76,24 +76,25 @@ Resources:
                 # - arn:aws:iam::478062583808:policy/CloudWatchPolicyForLambda # See https://stackoverflow.com/questions/51166504/disable-cloudwatch-to-monitor-logs-for-lambda-function
             Tags:
                 LambdaName: mr-lambda-driver
-            Events:
-                # Bi-nightly build of the stats
-                BgsGroupedQueriesTrigger:
-                    Type: Schedule
-                    Properties:
-                        Input: '{ "jobName": "bgs-grouped-queries", "query": null, "implementation": "bgs-grouped-queries" }'
-                        Schedule: cron(0 1 */2 * ? *)
-                # Build duels treasure winrates
-                # CasualDuelsTreasureTrigger:
-                #     Type: Schedule
-                #     Properties:
-                #         Input: '{ "jobName": "casual-duels-treasure", "query": null, "implementation": "casual-duels-treasure" }'
-                #         Schedule: cron(0 1 2-31/2 * ? *)
-                # HeroicDuelsTreasureTrigger:
-                #     Type: Schedule
-                #     Properties:
-                #         Input: '{ "jobName": "heroic-duels-treasure", "query": null, "implementation": "heroic-duels-treasure" }'
-                #         Schedule: cron(0 2 2-31/2 * ? *)
+            #  Not used anymore
+            # Events:
+            #     # Bi-nightly build of the stats
+            #     BgsGroupedQueriesTrigger:
+            #         Type: Schedule
+            #         Properties:
+            #             Input: '{ "jobName": "bgs-grouped-queries", "query": null, "implementation": "bgs-grouped-queries" }'
+            #             Schedule: cron(0 1 */2 * ? *)
+            # Build duels treasure winrates
+            # CasualDuelsTreasureTrigger:
+            #     Type: Schedule
+            #     Properties:
+            #         Input: '{ "jobName": "casual-duels-treasure", "query": null, "implementation": "casual-duels-treasure" }'
+            #         Schedule: cron(0 1 2-31/2 * ? *)
+            # HeroicDuelsTreasureTrigger:
+            #     Type: Schedule
+            #     Properties:
+            #         Input: '{ "jobName": "heroic-duels-treasure", "query": null, "implementation": "heroic-duels-treasure" }'
+            #         Schedule: cron(0 2 2-31/2 * ? *)
     MapperWatcherFunction:
         Type: AWS::Serverless::Function
         Properties:
